@@ -1,7 +1,9 @@
-import psycopg2
-from studyhelperbot.handlers.errors import error_info
-from studyhelperbot.config import config
 import logging
+from datetime import datetime, timedelta
+
+import psycopg2
+from studyhelperbot.handlers import error_info
+from studyhelperbot.config import config
 
 
 class AnalizaDB:
@@ -13,13 +15,13 @@ class AnalizaDB:
         """ Connect to the PostgreSQL database server """
         try:
             params = config("postgresql")
-            logging.info("Connecting to the PostgreSQL database...")
+            logging.debug("db.py:Connecting to the PostgreSQL database...")
             self.conn = psycopg2.connect(**params)
 
             # Display PostgreSQL version
             cur = self.conn.cursor()
             cur.execute('SELECT version()')
-            logging.info(f"PostgreSQL database version: {cur.fetchone()}")
+            logging.debug(f"db.py:PostgreSQL database version: {cur.fetchone()}")
             cur.close()
 
         except (Exception, psycopg2.DatabaseError):
@@ -39,7 +41,7 @@ class AnalizaDB:
                     })
         self.conn.commit()
         cur.close()
-        logging.info(f"A new user account was created :: "
+        logging.info(f"db.py:A new user account was created :: "
                      f"telegram_id={telegram_id}; bot_chat_id={bot_chat_id}")
 
     def delete_user_account(self, bot_chat_id=None, telegram_id=None):
@@ -57,7 +59,31 @@ class AnalizaDB:
                     f"WHERE {where}=%s;", (value_id,))
         self.conn.commit()
         cur.close()
-        logging.info(f"The following user account was deleted :: {where}={value_id}")
+        logging.info(f"db.py:The following user account was deleted :: "
+                     f"{where}={value_id}")
+
+    def new_user_verification_record(self, user_id, password, email, expire_minutes=10):
+        """Creates as new record in the `user_verification` table"""
+        time_sent = datetime.utcnow()
+        time_expires = time_sent + timedelta(minutes=expire_minutes)
+        cur = self.conn.cursor()
+        cur.execute(f"INSERT INTO user_verification "
+                    f"(user_id, one_time_password, email, datetime_sent, datetime_expires)"
+                    f"VALUES "
+                    f"(%(user_id)s, %(password)s, %(email)s, %(time_sent)s, %(time_expires)s);",
+                    {
+                        "user_id": user_id,
+                        "password": password,
+                        "email": email,
+                        "time_sent": time_sent,
+                        "time_expires": time_expires,
+                    })
+        self.conn.commit()
+        cur.close()
+        logging.info(f"db.py:A new user verification record created :: "
+                     f"user_id={user_id}; password={password}; "
+                     f"email={email}; time_sent={time_sent}; "
+                     f"time_expires={time_expires}")
 
     def get_specific_column(self, where, where_value, col_name, table="users"):
         """Retrieves a specific value from a specific row"""
@@ -67,9 +93,10 @@ class AnalizaDB:
                     f"WHERE  {where} = %s;", (where_value,))
         ans = cur.fetchone()
         cur.close()
-        logging.debug(f"Run the following SQL query :: "
-                      f"SELECT {col_name} FROM {table} WHERE {where}={where_value}")
-        logging.debug(f"Result :: {ans}")
+        logging.debug(f"db.py:Run the following SQL query :: "
+                      f"SELECT {col_name} FROM {table} "
+                      f"WHERE {where}={where_value}")
+        logging.debug(f"db.py:Result :: {ans}")
         return ans
 
     def set_specific_column(self, where, where_value,
@@ -88,7 +115,7 @@ class AnalizaDB:
         )
         self.conn.commit()
         cur.close()
-        logging.debug(f"Run the following SQL query :: "
+        logging.debug(f"db.py:Run the following SQL query :: "
                       f"UPDATE {table} SET {col_name}={col_name_value} WHERE {where}={where_value}")
 
     def get_expected_answer(self, bot_chat_id):
@@ -100,7 +127,7 @@ class AnalizaDB:
                     "WHERE  bot_chat_id = %s;", (bot_chat_id,))
         ans = cur.fetchone()
         cur.close()
-        logging.debug(f"GET expected answer for bot_chat_id={bot_chat_id} :: "
+        logging.debug(f"db.py:GET expected answer for bot_chat_id={bot_chat_id} :: "
                       f"wait_for_answer={ans[0]}; expected_answer='{ans[1]}'")
         return ans
 
@@ -120,7 +147,7 @@ class AnalizaDB:
                     })
         self.conn.commit()
         cur.close()
-        logging.debug(f"SET expected answer for bot_chat_id={bot_chat_id} :: "
+        logging.debug(f"db.py:SET expected answer for bot_chat_id={bot_chat_id} :: "
                       f"wait_for_answer={wait_for_answer}; "
                       f"expected_answer='{expected_answer}'")
 
@@ -129,12 +156,14 @@ class AnalizaDB:
         if self.conn is not None:
             self.conn.close()
             self.conn = None
-            logging.info("Database connection closed.")
+            logging.debug("db.py:Database connection closed.")
             self.is_connected = False
         else:
             # executes when there was no connection
-            logging.warning("Database was asked to be closed, but there was no connection.")
-            logging.warning(f"self.is_connected set to False (before it was {self.is_connected}).")
+            logging.warning("db.py:Database was asked to be closed, "
+                            "but there was no connection.")
+            logging.warning(f"db.py:self.is_connected set to False "
+                            f"(before it was {self.is_connected}).")
             self.is_connected = False
 
 

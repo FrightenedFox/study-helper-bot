@@ -20,6 +20,12 @@ async def cmd_help(message: types.Message):
     await message.answer(help_message)
 
 
+@dp.message_handler(commands=["register"])
+async def cmd_help(message: types.Message):
+
+    pass
+
+
 @dp.message_handler(commands="newEvent")
 async def cmd_test1(message: types.Message):
     await message.reply("")

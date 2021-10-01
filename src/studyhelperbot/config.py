@@ -11,3 +11,7 @@ def config(section, filename="config.ini"):
         raise Exception(f"Section {section} not found in the {filename} file.")
 
     return params
+
+
+if __name__ == "__main__":
+    config("postgresql")
