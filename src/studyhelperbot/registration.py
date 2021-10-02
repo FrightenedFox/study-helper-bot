@@ -16,34 +16,27 @@ params = config("registration")
 SYNC_MODE = params["sync_mode"]  # sync or async
 LOCAL_MODE = bool(int(params["local_mode"]))
 
-SENDING = False
-RECIPIENTS_LIST = []
-# The example of the records in the RECIPIENT_LIST:
-# {
-#     "user_id": 20,
-#     "email_address": "morskyi.vitalii@stud.prz.edu.pl",
-# }
 
-
-def add_email_task(recipient_user_id, recipient_email):
+async def add_email_task(recipient_user_id, recipient_email):
     """Verifies an prz_email address and if it is valid creates an email coroutine"""
-    global SENDING, RECIPIENTS_LIST
     if not re.match(r"^(?!.*[^\d\w]{2,}.*)[\d\w][\d\w\.\-\_]{1,30}[\d\w]@(?:stud\.)?prz\.edu\.pl$",
                     recipient_email):
         raise ValueError("The email domain is not correct and/or the email itself is impossible.")
-    RECIPIENTS_LIST.append(     # TODO: make this concept work xD
-        {
-            "user_id": recipient_user_id,
-            "email_address": recipient_email,
-        }
-    )
-    if not SENDING:
-        SENDING = True
-        asyncio.run(throttler(threshold=float(params["threshold"])))
+    loop = asyncio.get_running_loop()
+    email_task = loop.create_task(send_email(
+        user_id=recipient_user_id,
+        email_address=recipient_email,
+        threshold=float(params["threshold"])
+    ))
+    # return verification_id
+    return await email_task
 
 
-async def send_email(user_id, email_address):
+async def send_email(user_id, email_address, threshold=3.0):
     """Generates an email and sends it"""
+    # Throttle the speed of the email sending
+    await asyncio.sleep(threshold)
+
     # Generate password, subject and body
     password = f"{randint(1_000, 999_999):06}"
     subject, body = create_email_subject_and_body(password)
@@ -89,6 +82,7 @@ async def send_email(user_id, email_address):
     except (Exception, OSError):
         logging.error(error_info())
     else:
+        # This part will be executed only if there was no exceptions
         logging.info(f"handlers/registration.py:"
                      f"Password {password} was sent to "
                      f"{email_address} (user_id = {user_id}). "
@@ -97,8 +91,12 @@ async def send_email(user_id, email_address):
         # Create a record in the database
         db = AnalizaDB()
         db.connect()
-        db.new_user_verification_record(user_id, password, email_address)
+        verification_id = db.create_user_verification_record(user_id, password, email_address)
         db.disconnect()
+        return verification_id
+
+    # None will be returned if there was en exception
+    return None
 
 
 def create_email_subject_and_body(password):
@@ -111,22 +109,7 @@ def create_email_subject_and_body(password):
     return subject, body
 
 
-async def throttler(threshold=3.0):
-    """Throttles the speed of the email sending process"""
-    global SENDING, RECIPIENTS_LIST
-    tasks_list = []     # TODO: make this concept work (for now this list always takes one element)
-    while SENDING:
-        recipient_credentials = RECIPIENTS_LIST.pop(0)
-        tasks_list.append(asyncio.create_task(
-            send_email(**recipient_credentials)
-        ))
-        await asyncio.sleep(threshold)
-        if not RECIPIENTS_LIST:     # ~= len(RECIPIENTS_LIST) == 0
-            SENDING = False
-    await asyncio.wait(tasks_list)
-
-
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    for i in range(1):
-        add_email_task(19, "166731@stud.prz.edu.pl")
+    for i in range(5):
+        print(asyncio.run(add_email_task(27, "166731@stud.prz.edu.pl")))

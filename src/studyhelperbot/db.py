@@ -7,6 +7,7 @@ from studyhelperbot.config import config
 
 
 class AnalizaDB:
+    # TODO: maybe move all sql strings to a separate file?
     def __init__(self):
         self.conn = None
         self.is_connected = False
@@ -29,6 +30,35 @@ class AnalizaDB:
 
         if self.conn is not None:
             self.is_connected = True
+
+    def record_exists(self, key_value, key_column="telegram_id", table="users"):
+        """Checks whether there is a record with
+        the same `key_value` in the specified `table`."""
+        cur = self.conn.cursor()
+        cur.execute(f"SELECT {key_column} "
+                    f"FROM   {table} "
+                    f"WHERE  {key_column} = %s;", (key_value,))
+        ans = cur.fetchone()
+        cur.close()
+        logging.debug(f"db.py:Check whether the with telegram_id::{key_value} user exists.")
+        if ans is None:
+            return False
+        else:
+            return True
+
+    def user_is_banned(self, telegram_id):
+        """Checks whether the user is not blocked."""
+        cur = self.conn.cursor()
+        cur.execute(f"SELECT banned "
+                    f"FROM   users "
+                    f"WHERE  telegram_id = %s;", (telegram_id,))
+        ans = cur.fetchone()
+        cur.close()
+        logging.debug(f"db.py:Check whether the with telegram_id::{telegram_id} user exists.")
+        if ans is None:
+            return False
+        else:
+            return ans[0]
 
     def create_new_user_account(self, telegram_id, bot_chat_id):
         """Creates new record in the `users` table"""
@@ -62,15 +92,31 @@ class AnalizaDB:
         logging.info(f"db.py:The following user account was deleted :: "
                      f"{where}={value_id}")
 
-    def new_user_verification_record(self, user_id, password, email, expire_minutes=10):
-        """Creates as new record in the `user_verification` table"""
+    def get_user_id(self, distinguishable_col, col_value):
+        """Get user_id by any `distinguishable_col`"""
+        cur = self.conn.cursor()
+        cur.execute(f"SELECT user_id "
+                    f"FROM   users "
+                    f"WHERE  {distinguishable_col} = %s;", (col_value,))
+        ans = cur.fetchone()
+        cur.close()
+        # TODO: implement logging
+        # logging.debug(f"db.py:GET expected answer for chat_id={chat_id} :: "
+        #               f"wait_for_answer={ans[0]}; expected_answer='{ans[1]}'")
+        return ans
+
+    def create_user_verification_record(self, user_id, password, email,
+                                        expire_minutes=10):
+        """Creates as new record in the `user_verification` table and
+        returns it's `verification_id`"""
         time_sent = datetime.utcnow()
         time_expires = time_sent + timedelta(minutes=expire_minutes)
         cur = self.conn.cursor()
         cur.execute(f"INSERT INTO user_verification "
-                    f"(user_id, one_time_password, email, datetime_sent, datetime_expires)"
+                    f"(user_id, one_time_password, email, datetime_sent, datetime_expires) "
                     f"VALUES "
-                    f"(%(user_id)s, %(password)s, %(email)s, %(time_sent)s, %(time_expires)s);",
+                    f"(%(user_id)s, %(password)s, %(email)s, %(time_sent)s, %(time_expires)s) "
+                    f"RETURNING verification_id;",
                     {
                         "user_id": user_id,
                         "password": password,
@@ -78,12 +124,83 @@ class AnalizaDB:
                         "time_sent": time_sent,
                         "time_expires": time_expires,
                     })
+        ans = cur.fetchone()[0]
         self.conn.commit()
         cur.close()
         logging.info(f"db.py:A new user verification record created :: "
                      f"user_id={user_id}; password={password}; "
                      f"email={email}; time_sent={time_sent}; "
                      f"time_expires={time_expires}")
+        logging.info(f"db.py:Return verification_id={ans}")
+        return ans
+
+    def get_user_verification_record(self, verification_id):
+        """Retrieves verification `password` and `time_expires`
+        based on the `user_id`"""
+        cur = self.conn.cursor()
+        cur.execute(f"SELECT one_time_password, datetime_expires, email "
+                    f"FROM   user_verification "
+                    f"WHERE  verification_id = %s;", (verification_id,))
+        ans = cur.fetchone()
+        cur.close()
+        logging.debug(f"db.py:Get password={ans[0]} and time_expires={ans[1]} "
+                      f"for the user_id={verification_id}")
+        return ans
+
+    def create_chat_record(self, chat_id, chat_type):
+        """Creates new record in the `chats` table"""
+        cur = self.conn.cursor()
+        cur.execute(f"INSERT INTO chats (chat_id, chat_type) "
+                    f"VALUES (%(chat_id)s, %(chat_type)s);",
+                    {
+                        "chat_id": chat_id,
+                        "chat_type": chat_type,
+                    })
+        self.conn.commit()
+        cur.close()
+        logging.info(f"db.py:A new chat record was created :: "
+                     f"chat_id={chat_id}; chat_type={chat_type}")
+
+    def get_expected_method(self, chat_id):
+        """Retrieves `wait_for_answer` and `expected_answer` values
+        for a specific `bot_chat_id` conversation.
+
+        Returns:
+            bool, str
+        """
+        cur = self.conn.cursor()
+        cur.execute("SELECT wait_for_answer, expected_method, additional_answer_info "
+                    "FROM   chats "
+                    "WHERE  chat_id = %s;", (chat_id,))
+        ans = cur.fetchone()
+        cur.close()
+        logging.debug(f"db.py:GET expected answer for chat_id={chat_id} :: "
+                      f"wait_for_answer={ans[0]}; expected_answer='{ans[1]}'")
+        return ans
+
+    def set_expected_method(self, chat_id,
+                            wait_for_answer=False,
+                            expected_method=None,
+                            additional_answer_info=None):
+        """Updates `wait_for_answer` and `expected_answer` values
+        for a specific `bot_chat_id` conversation."""
+        cur = self.conn.cursor()
+        cur.execute(f"UPDATE    chats "
+                    f"SET       wait_for_answer = %(wait_for_ans)s, "
+                    f"          expected_method = %(exp_mth)s,"
+                    f"          additional_answer_info = %(add_ans_info)s "
+                    f"WHERE     chat_id = %(chat_id)s;",
+                    {
+                        "wait_for_ans": wait_for_answer,
+                        "exp_mth":      expected_method,
+                        "add_ans_info": additional_answer_info,
+                        "chat_id":      chat_id,
+                    })
+        self.conn.commit()
+        cur.close()
+        logging.debug(f"db.py:SET expected answer for chat_id={chat_id} :: "
+                      f"wait_for_answer={wait_for_answer}; "
+                      f"expected_answer='{expected_method}'")
 
     def get_specific_column(self, where, where_value, col_name, table="users"):
         """Retrieves a specific value from a specific row"""
@@ -118,39 +235,6 @@ class AnalizaDB:
         logging.debug(f"db.py:Run the following SQL query :: "
                       f"UPDATE {table} SET {col_name}={col_name_value} WHERE {where}={where_value}")
 
-    def get_expected_answer(self, bot_chat_id):
-        """Retrieves `wait_for_answer` and `expected_answer` values
-        for a specific `bot_chat_id` conversation."""
-        cur = self.conn.cursor()
-        cur.execute("SELECT wait_for_answer, expected_answer "
-                    "FROM   users "
-                    "WHERE  bot_chat_id = %s;", (bot_chat_id,))
-        ans = cur.fetchone()
-        cur.close()
-        logging.debug(f"db.py:GET expected answer for bot_chat_id={bot_chat_id} :: "
-                      f"wait_for_answer={ans[0]}; expected_answer='{ans[1]}'")
-        return ans
-
-    def set_expected_answer(self, bot_chat_id,
-                            wait_for_answer=False, expected_answer=None):
-        """Updates `wait_for_answer` and `expected_answer` values
-        for a specific `bot_chat_id` conversation."""
-        cur = self.conn.cursor()
-        cur.execute(f"UPDATE    users "
-                    f"SET       wait_for_answer = %(wait_for_ans)s, "
-                    f"          expected_answer = %(exp_ans)s  "
-                    f"WHERE     bot_chat_id = %(bot_chat_id)s;",
-                    {
-                        "wait_for_ans": wait_for_answer,
-                        "exp_ans": expected_answer,
-                        "bot_chat_id": bot_chat_id,
-                    })
-        self.conn.commit()
-        cur.close()
-        logging.debug(f"db.py:SET expected answer for bot_chat_id={bot_chat_id} :: "
-                      f"wait_for_answer={wait_for_answer}; "
-                      f"expected_answer='{expected_answer}'")
-
     def disconnect(self):
         """ Disconnect from the PostgreSQL database server """
         if self.conn is not None:
@@ -178,4 +262,5 @@ if __name__ == "__main__":
     # print(db.get_specific_column('user_id', 3, 'telegram_id'))
     # db.create_new_user_account(1231122, 54352353)
     # db.delete_user_account(telegram_id=1231122)
+    # print(db.user_is_banned(1231122))
     db.disconnect()
