@@ -6,11 +6,11 @@ def config(section, filename="config.ini"):
     parser.read(filename)
 
     if parser.has_section(section):
-        params = dict(parser.items(section))
+        params = dict(parser[section])
     else:
         raise Exception(f"Section {section} not found in the {filename} file.")
     return params
 
 
 if __name__ == "__main__":
-    config("postgresql")
+    print(config("postgresql"))

@@ -8,7 +8,7 @@ from random import randint
 
 import aiosmtplib
 
-from studyhelperbot import config, error_info
+from studyhelperbot import config, exception_info
 from studyhelperbot.db import StudyHelperBotDB
 
 params = config("registration")
@@ -79,7 +79,7 @@ async def send_email(user_id, email_address, threshold=3.0):
         else:
             raise ValueError(f"Expected MODE to be 'sync' or 'async', but '{SYNC_MODE}' received.")
     except (Exception, OSError):
-        logging.error(error_info())
+        logging.error(exception_info())
     else:
         # This part will be executed only if there was no exceptions
         logging.info(f"handlers/registration.py:"

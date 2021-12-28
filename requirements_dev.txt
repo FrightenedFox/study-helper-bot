@@ -28,7 +28,6 @@ pytest==6.2.5
 pytest-cov==3.0.0
 pytz==2021.1
 six==1.16.0
--e git+https://github.com/FrightenedFox/study-helper-bot.git@f39cd118a1bb6d44b88d2f3aca3eeff2c97bec75#egg=studyhelperbot
 toml==0.10.2
 tomli==2.0.0
 tox==3.24.4
