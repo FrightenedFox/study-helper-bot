@@ -2,16 +2,14 @@ import logging
 from aiogram import Bot, Dispatcher, executor, types
 from datetime import datetime, timedelta
 
-import studyhelperbot.registration
-import studyhelperbot.handlers
-from studyhelperbot.config import config
-from studyhelperbot.db import AnalizaDB
+from studyhelperbot import config
+from studyhelperbot.db import StudyHelperBotDB
 
 
 params = config("telegram")
 bot = Bot(token=params["token"])    # for now can be rewritten as Bot(**params)
 dp = Dispatcher(bot)
-db = AnalizaDB()
+db = StudyHelperBotDB()
 logging.basicConfig(level=logging.INFO)
 
 # TODO: move this garbage to the separate file

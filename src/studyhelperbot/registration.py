@@ -8,9 +8,8 @@ from random import randint
 
 import aiosmtplib
 
-from studyhelperbot.db import AnalizaDB
-from studyhelperbot.config import config
-from studyhelperbot.handlers import error_info
+from studyhelperbot import config, error_info
+from studyhelperbot.db import StudyHelperBotDB
 
 params = config("registration")
 SYNC_MODE = params["sync_mode"]  # sync or async

@@ -9,7 +9,6 @@ def config(section, filename="config.ini"):
         params = dict(parser.items(section))
     else:
         raise Exception(f"Section {section} not found in the {filename} file.")
-
     return params
 
 
