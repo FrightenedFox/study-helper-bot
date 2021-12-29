@@ -54,11 +54,29 @@ class StudyHelperBotDB:
         cur.execute(query, (key_value,))
         ans = cur.fetchone()
         cur.close()
-        logging.debug(f"Check if exists {key_column}::{key_value} in {table}.")
+        logging.debug(f"Check if exists {key_column}::{key_value} in {table}"
+                      f"Response {True if ans is not None else False}.")
         if ans is None:
             return False
         else:
             return True
+
+    def user_can(self, tg_user_id, permission):
+        cur = self.conn.cursor()
+        query = (f"SELECT permissions.{permission} "
+                 f"FROM   users, permissions "
+                 f"WHERE  users.tg_user_id = %s "
+                 f"AND    users.permission = permissions.permission_id;")
+        cur.execute(query, (tg_user_id,))
+        ans = cur.fetchone()
+        cur.close()
+        logging.debug(f"Check permission tg_user_id={tg_user_id} {permission}. "
+                      f"Response: {ans}.")
+        if ans is None:
+            return False
+        else:
+            return ans[0]
+        pass
 
     def user_is_banned(self, tg_user_id):
         cur = self.conn.cursor()
@@ -68,11 +86,26 @@ class StudyHelperBotDB:
         cur.execute(query, (tg_user_id,))
         ans = cur.fetchone()
         cur.close()
-        logging.debug(f"Check tg_user_id::{tg_user_id}.")
+        logging.debug(f"Check tg_user_id::{tg_user_id}. Response: {ans}.")
         if ans is None:
             return False
         else:
             return not ans[0]
+        pass
+
+    def user_is_verified(self, tg_user_id):
+        cur = self.conn.cursor()
+        query = ("SELECT users.verified "
+                 "FROM   users "
+                 "WHERE  users.tg_user_id = %s;")
+        cur.execute(query, (tg_user_id,))
+        ans = cur.fetchone()
+        cur.close()
+        logging.debug(f"Check tg_user_id::{tg_user_id}. Response: {ans}.")
+        if ans is None:
+            return False
+        else:
+            return ans[0]
         pass
 
     def create_new_user_account(self, tg_user_id, tg_chat_id, permission=1):
@@ -88,7 +121,8 @@ class StudyHelperBotDB:
                     })
         self.conn.commit()
         cur.close()
-        logging.debug(f"Add tg_user_id={tg_user_id}, tg_chat_id={tg_chat_id}, perm={permission}")
+        logging.debug(f"Add tg_user_id={tg_user_id}, "
+                      f"tg_chat_id={tg_chat_id}, perm={permission}")
 
     def create_chat_record(self, tg_chat_id, chat_type):
         """Creates new record in the `chats` table."""
@@ -103,6 +137,29 @@ class StudyHelperBotDB:
         self.conn.commit()
         cur.close()
         logging.debug(f"Add tg_chat_id={tg_chat_id}, chat_type={chat_type}")
+
+    def verify_user(self, tg_user_id,
+                    usos_id, first_name,
+                    last_name, verified=True):
+        cur = self.conn.cursor()
+        query = ("UPDATE    users "
+                 "SET       usos_id = %(usos_id)s, "
+                 "          first_name = %(first_name)s, "
+                 "          last_name = %(last_name)s,"
+                 "          verified = %(verified)s "
+                 "WHERE     tg_user_id = %(tg_user_id)s;")
+        cur.execute(query,
+                    {
+                        "usos_id":      usos_id,
+                        "first_name":   first_name,
+                        "last_name":    last_name,
+                        "verified":     verified,
+                        "tg_user_id":   tg_user_id,
+                    })
+        self.conn.commit()
+        cur.close()
+        logging.debug(f"Set verified to {verified} to tg_chat_id={tg_user_id}"
+                      f"name: {first_name} {last_name}.")
 
     def set_expected_method(self, tg_chat_id,
                             wait_for_answer=False,
@@ -172,8 +229,8 @@ class StudyHelperBotDB:
         """Updates a specific value from a specific row."""
         cur = self.conn.cursor()
         query = (f"UPDATE    {table} "
-                 f"SET       {col_name} = %(col_name_value)s, "
-                 f"WHERE     where = %(where_value)s;")
+                 f"SET       {col_name} = %(col_name_value)s "
+                 f"WHERE     {where} = %(where_value)s; ")
         cur.execute(query,{"col_name_value": col_name_value,"where_value": where_value, })
         self.conn.commit()
         cur.close()

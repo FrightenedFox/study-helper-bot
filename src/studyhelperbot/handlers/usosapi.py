@@ -22,7 +22,7 @@ _REQUEST_TOKEN_SUFFIX = 'services/oauth/request_token'
 _AUTHORIZE_SUFFIX = 'services/oauth/authorize'
 _ACCESS_TOKEN_SUFFIX = 'services/oauth/access_token'
 
-SCOPES = 'offline_access|studies'
+SCOPES = 'student_exams|studies'
 
 _LOGGER = logging.getLogger('USOSAPI')
 _DOWNLOAD_LOGGER = logging.getLogger('USOSAPI.download')
@@ -118,9 +118,8 @@ class USOSAPIConnection:
         self._request_token = ''
 
         self._authorized_session = None
-        _LOGGER.info('New connection to {} created with key: {} '
-                     'and secret: {}.'.format(api_base_address,
-                                              consumer_key, consumer_secret))
+        _LOGGER.info(f'New connection to {api_base_address} '
+                     f'created with key: {consumer_key}.')
 
     def _generate_request_token(self):
         params = {'oauth_callback': 'oob', 'scopes': SCOPES}
@@ -213,6 +212,27 @@ class USOSAPIConnection:
             raise USOSAPIException(text)
         at = self.get_access_data()[0]
         _LOGGER.info('Authorization successful, received access token: ' + at)
+
+    def get_request_data(self) -> dict:
+        """
+        Returns a dictionary of request token and request token secret.
+        You can save them somewhere and later use them to resume
+        an authorized session.
+        """
+        request_data = {
+            "request_token": self._request_token,
+            "request_token_secret": self._request_token_secret,
+        }
+        return request_data
+
+    def set_request_data(self, request_token: str,
+                         request_token_secret: str):
+        """Using this function you can resume an authorized session."""
+        self._request_token = request_token
+        self._request_token_secret = request_token_secret
+
+        _LOGGER.info('New request token ({}) and secret ({}) '
+                     'set.'.format(request_token, request_token_secret))
 
     def get_access_data(self) -> tuple:
         """

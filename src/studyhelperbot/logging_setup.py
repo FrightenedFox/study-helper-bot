@@ -21,3 +21,5 @@ def initialize_logging():
     console_handler.setFormatter(log_formatter)
     console_handler.setLevel(logging.DEBUG)
     root_logger.addHandler(console_handler)
+
+    root_logger.setLevel(getattr(logging, params["level"]))
