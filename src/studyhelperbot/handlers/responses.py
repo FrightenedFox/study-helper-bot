@@ -48,7 +48,9 @@ def incorrect_verification_code(lang="pl"):
 
 
 def successful_verification(lang="pl"):
-    # TODO: finish
+    # TODO: finish + since we already know users' name, it would
+    #  be nice to use it as well
+    #  (e.g. Dear, Aurthur, verification passed successfully!)
     if lang == "pl":
         return "Udało się zalogować!"
 

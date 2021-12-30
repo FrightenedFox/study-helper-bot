@@ -54,7 +54,7 @@ class StudyHelperBotDB:
         cur.execute(query, (key_value,))
         ans = cur.fetchone()
         cur.close()
-        logging.debug(f"Check if exists {key_column}::{key_value} in {table}"
+        logging.debug(f"Check if exists {key_column=} {key_value=} in {table}"
                       f"Response {True if ans is not None else False}.")
         if ans is None:
             return False
@@ -70,7 +70,7 @@ class StudyHelperBotDB:
         cur.execute(query, (tg_user_id,))
         ans = cur.fetchone()
         cur.close()
-        logging.debug(f"Check permission tg_user_id={tg_user_id} {permission}. "
+        logging.debug(f"Check permission {tg_user_id=} {permission=}. "
                       f"Response: {ans}.")
         if ans is None:
             return False
@@ -86,7 +86,7 @@ class StudyHelperBotDB:
         cur.execute(query, (tg_user_id,))
         ans = cur.fetchone()
         cur.close()
-        logging.debug(f"Check tg_user_id::{tg_user_id}. Response: {ans}.")
+        logging.debug(f"Check {tg_user_id=}. Response: {ans}.")
         if ans is None:
             return False
         else:
@@ -101,7 +101,7 @@ class StudyHelperBotDB:
         cur.execute(query, (tg_user_id,))
         ans = cur.fetchone()
         cur.close()
-        logging.debug(f"Check tg_user_id::{tg_user_id}. Response: {ans}.")
+        logging.debug(f"Check {tg_user_id=}. Response: {ans}.")
         if ans is None:
             return False
         else:
@@ -121,14 +121,13 @@ class StudyHelperBotDB:
                     })
         self.conn.commit()
         cur.close()
-        logging.debug(f"Add tg_user_id={tg_user_id}, "
-                      f"tg_chat_id={tg_chat_id}, perm={permission}")
+        logging.debug(f"Add {tg_user_id=}, {tg_chat_id=}, {permission=}")
 
     def create_chat_record(self, tg_chat_id, chat_type):
         """Creates new record in the `chats` table."""
         cur = self.conn.cursor()
         query = ("INSERT INTO chats (tg_chat_id, chat_type) "
-                 "VALUES (%(tg_chat_id)s, %(tg_chat_id)s);")
+                 "VALUES ( %(tg_chat_id)s, %(tg_chat_id)s ); ")
         cur.execute(query,
                     {
                         "tg_chat_id":   tg_chat_id,
@@ -136,7 +135,7 @@ class StudyHelperBotDB:
                     })
         self.conn.commit()
         cur.close()
-        logging.debug(f"Add tg_chat_id={tg_chat_id}, chat_type={chat_type}")
+        logging.debug(f"Add {tg_chat_id=}, {chat_type=}")
 
     def verify_user(self, tg_user_id,
                     usos_id, first_name,
@@ -158,7 +157,7 @@ class StudyHelperBotDB:
                     })
         self.conn.commit()
         cur.close()
-        logging.debug(f"Set verified to {verified} to tg_chat_id={tg_user_id}"
+        logging.debug(f"Set verified to {verified} to {tg_user_id=}"
                       f"name: {first_name} {last_name}.")
 
     def set_expected_method(self, tg_chat_id,
@@ -182,8 +181,7 @@ class StudyHelperBotDB:
                     })
         self.conn.commit()
         cur.close()
-        logging.debug(f"tg_chat_id={tg_chat_id} wait_for_answer={wait_for_answer} "
-                      f"expected_answer='{expected_method}'")
+        logging.debug(f"{tg_chat_id=} {wait_for_answer=} {expected_method=}")
 
     def get_expected_method(self, tg_chat_id):
         """Retrieves `wait_for_answer` and `expected_answer` values
@@ -195,7 +193,7 @@ class StudyHelperBotDB:
         cur.execute(query, (tg_chat_id,))
         ans = cur.fetchone()
         cur.close()
-        logging.debug(f"tg_chat_id={tg_chat_id} wait_for_answer={ans[0]} "
+        logging.debug(f"{tg_chat_id=} wait_for_answer={ans[0]} "
                       f"expected_answer='{ans[1]}'")
         return ans
 
@@ -208,7 +206,7 @@ class StudyHelperBotDB:
         cur.execute(query, (col_value,))
         ans = cur.fetchone()
         cur.close()
-        logging.debug(f"distinguishable_col={col_value}")
+        logging.debug(f"{distinguishable_col=} - {col_value}")
         return ans
 
     def get_specific_column(self, where, where_value, col_name, table="users"):
@@ -220,7 +218,7 @@ class StudyHelperBotDB:
         cur.execute(query, (where_value,))
         ans = cur.fetchone()
         cur.close()
-        logging.debug(f"{query}\t{where_value}")
+        logging.debug(f"{query=}\t{where_value=}")
         return ans
 
     def set_specific_column(self, where, where_value,
@@ -234,7 +232,96 @@ class StudyHelperBotDB:
         cur.execute(query,{"col_name_value": col_name_value,"where_value": where_value, })
         self.conn.commit()
         cur.close()
-        logging.debug(f"{query}\tcnv {col_name_value}\twv {where_value}")
+        logging.debug(f"{query=}\t{col_name_value=}, {where_value=}")
+
+    def upsert_course(self, course_id, course_name):
+        """Updates or inserts a course."""
+        cur = self.conn.cursor()
+        query = ("INSERT INTO public.courses (course_id, course_name)"
+                 "VALUES (%(course_id)s, %(course_name)s)"
+                 "ON CONFLICT (course_id) "
+                 "DO UPDATE SET course_name = excluded.course_name;")
+        cur.execute(query,
+                    {
+                        "course_id":    course_id,
+                        "course_name":  course_name,
+                    })
+        self.conn.commit()
+        cur.close()
+        logging.debug(f"{course_name=}, {course_id=}")
+
+    def upsert_teacher(self, teacher_usos_id, first_name, last_name):
+        """Updates or inserts a teacher."""
+        cur = self.conn.cursor()
+        query = ("INSERT INTO public.teachers (teacher_usos_id, first_name, last_name) "
+                 "VALUES (%(teacher_usos_id)s, %(first_name)s, %(last_name)s)"
+                 "ON CONFLICT (teacher_usos_id) "
+                 "DO UPDATE SET first_name = excluded.first_name,"
+                 "              last_name  = excluded.last_name;")
+        cur.execute(query,
+                    {
+                        "teacher_usos_id":      teacher_usos_id,
+                        "first_name":   first_name,
+                        "last_name":    last_name,
+                    })
+        self.conn.commit()
+        cur.close()
+        logging.debug(f"{teacher_usos_id=}, {first_name=}, {last_name=}")
+
+    def upsert_usos_units(self, usos_unit_id, course):
+        """Updates or inserts an usos unit."""
+        cur = self.conn.cursor()
+        query = ("INSERT INTO public.usos_units (usos_unit_id, course) "
+                 "VALUES (%(usos_unit_id)s, %(course)s)"
+                 "ON CONFLICT (usos_unit_id) "
+                 "DO UPDATE SET course = excluded.course;")
+        cur.execute(query,
+                    {
+                        "usos_unit_id": usos_unit_id,
+                        "course":       course,
+                    })
+        self.conn.commit()
+        cur.close()
+        logging.debug(f"{usos_unit_id=}, {course=}")
+
+    def upsert_student_group(self,
+                             usos_unit_id,
+                             group_number,
+                             general_group=None):
+        """Updates or inserts a student group."""
+        cur = self.conn.cursor()
+        query = ("INSERT INTO public.student_groups (usos_unit_id,"
+                 " group_number, general_group) VALUES ("
+                 "%(usos_unit_id)s, %(group_number)s, %(general_group)s) "
+                 "ON CONFLICT (usos_unit_id, group_number) DO "
+                 "UPDATE SET general_group = excluded.general_group "
+                 "RETURNING student_group_id;")
+        cur.execute(query,
+                    {
+                        "usos_unit_id":  usos_unit_id,
+                        "group_number":  group_number,
+                        "general_group": general_group,
+                    })
+        ans_id = cur.fetchone()[0]
+        self.conn.commit()
+        cur.close()
+        logging.debug(f"{usos_unit_id=}, {group_number=}, {general_group=}.")
+        return ans_id
+
+    def upsert_group_teacher(self, student_group, teacher):
+        """Updates or inserts an usos unit."""
+        cur = self.conn.cursor()
+        query = ("INSERT INTO public.group_teacher (student_group, teacher) "
+                 "VALUES (%(student_group)s, %(teacher)s)"
+                 "ON CONFLICT (student_group, teacher) DO NOTHING ;")
+        cur.execute(query,
+                    {
+                        "student_group": student_group,
+                        "teacher":       teacher,
+                    })
+        self.conn.commit()
+        cur.close()
+        logging.debug(f"{student_group=}, {teacher=}")
 
 
 if __name__ == "__main__":
