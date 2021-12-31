@@ -4,17 +4,18 @@ This package is part of the USOS API project.
 https://apps.usos.edu.pl/developers/
 """
 import hashlib
+import logging
 import os
 import os.path
-import tempfile
-import urllib.request
-import shutil
-import rauth
-import warnings
 import re
-import requests.exceptions
-import logging
+import shutil
+import tempfile
 import time
+import urllib.request
+import warnings
+
+import rauth
+import requests.exceptions
 
 VERSION = '1.0.0'
 
@@ -88,6 +89,7 @@ class USOSAPIConnection:
     complete the authorization process. After successfully calling the
     authorize_with_pin function, you will have an authorized_session.
     """
+
     def __init__(self, api_base_address: str, consumer_key: str,
                  consumer_secret: str):
         self.base_address = str(api_base_address)
@@ -156,7 +158,7 @@ class USOSAPIConnection:
         Checks if parameters passed for this object's constructor are correct
         and if it's possible to connect to the USOS API server.
         """
-        time_re = '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{6}$'    # noqa W605
+        time_re = '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{6}$'  # noqa W605
         try:
             anonymous_session = self._service.get_session()
             now = anonymous_session.get('services/apisrv/now')
@@ -187,7 +189,7 @@ class USOSAPIConnection:
 
         Will raise USOSAPIException if the PIN is incorrect.
         """
-        if not(self._request_token and self._request_token_secret):
+        if not (self._request_token and self._request_token_secret):
             raise USOSAPIException('Request token not initialized. '
                                    'Use get_authorization_url to generate '
                                    'the token.')

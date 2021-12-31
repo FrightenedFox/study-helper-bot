@@ -1,4 +1,3 @@
-import json
 from datetime import date
 
 from studyhelperbot import usosapi
@@ -18,7 +17,6 @@ def global_sync(
         db: StudyHelperBotDB,
         tg_user_id: str,
         usos_con: usosapi.USOSAPIConnection):
-
     groups_participant = usos_con.get(
         service="services/groups/participant",
         fields="course_unit_id|group_number|class_type|class_type_id|"
@@ -69,12 +67,12 @@ def global_sync(
 
             # TODO: class year, group type and general groups info
 
+
 def activities_sync(
         db: StudyHelperBotDB,
         tg_user_id: str,
         usos_con: usosapi.USOSAPIConnection):
     pass
-
 
 
 if __name__ == '__main__':

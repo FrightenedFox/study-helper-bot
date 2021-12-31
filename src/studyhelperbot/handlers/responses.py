@@ -65,4 +65,3 @@ def permission_conflict(lang="pl"):
     # TODO: finish
     if lang == "pl":
         return "Niestety, nie masz uprawnień do tego polecenia! :p"
-

@@ -1,5 +1,4 @@
 import logging
-from datetime import datetime, timedelta
 
 import psycopg2
 
@@ -115,9 +114,9 @@ class StudyHelperBotDB:
                  "VALUES (%(tg_user_id)s, %(tg_chat_id)s, %(permission)s);")
         cur.execute(query,
                     {
-                        "tg_user_id":   tg_user_id,
-                        "tg_chat_id":   tg_chat_id,
-                        "permission":   permission,
+                        "tg_user_id": tg_user_id,
+                        "tg_chat_id": tg_chat_id,
+                        "permission": permission,
                     })
         self.conn.commit()
         cur.close()
@@ -130,8 +129,8 @@ class StudyHelperBotDB:
                  "VALUES ( %(tg_chat_id)s, %(tg_chat_id)s ); ")
         cur.execute(query,
                     {
-                        "tg_chat_id":   tg_chat_id,
-                        "chat_type":    chat_type,
+                        "tg_chat_id": tg_chat_id,
+                        "chat_type": chat_type,
                     })
         self.conn.commit()
         cur.close()
@@ -149,11 +148,11 @@ class StudyHelperBotDB:
                  "WHERE     tg_user_id = %(tg_user_id)s;")
         cur.execute(query,
                     {
-                        "usos_id":      usos_id,
-                        "first_name":   first_name,
-                        "last_name":    last_name,
-                        "verified":     verified,
-                        "tg_user_id":   tg_user_id,
+                        "usos_id": usos_id,
+                        "first_name": first_name,
+                        "last_name": last_name,
+                        "verified": verified,
+                        "tg_user_id": tg_user_id,
                     })
         self.conn.commit()
         cur.close()
@@ -174,10 +173,10 @@ class StudyHelperBotDB:
                  "WHERE     tg_chat_id = %(tg_chat_id)s;")
         cur.execute(query,
                     {
-                        "wait_for_answer":  wait_for_answer,
-                        "expected_method":  expected_method,
-                        "other_details":    other_details,
-                        "tg_chat_id":       tg_chat_id,
+                        "wait_for_answer": wait_for_answer,
+                        "expected_method": expected_method,
+                        "other_details": other_details,
+                        "tg_chat_id": tg_chat_id,
                     })
         self.conn.commit()
         cur.close()
@@ -229,7 +228,7 @@ class StudyHelperBotDB:
         query = (f"UPDATE    {table} "
                  f"SET       {col_name} = %(col_name_value)s "
                  f"WHERE     {where} = %(where_value)s; ")
-        cur.execute(query,{"col_name_value": col_name_value,"where_value": where_value, })
+        cur.execute(query, {"col_name_value": col_name_value, "where_value": where_value, })
         self.conn.commit()
         cur.close()
         logging.debug(f"{query=}\t{col_name_value=}, {where_value=}")
@@ -243,8 +242,8 @@ class StudyHelperBotDB:
                  "DO UPDATE SET course_name = excluded.course_name;")
         cur.execute(query,
                     {
-                        "course_id":    course_id,
-                        "course_name":  course_name,
+                        "course_id": course_id,
+                        "course_name": course_name,
                     })
         self.conn.commit()
         cur.close()
@@ -260,9 +259,9 @@ class StudyHelperBotDB:
                  "              last_name  = excluded.last_name;")
         cur.execute(query,
                     {
-                        "teacher_usos_id":      teacher_usos_id,
-                        "first_name":   first_name,
-                        "last_name":    last_name,
+                        "teacher_usos_id": teacher_usos_id,
+                        "first_name": first_name,
+                        "last_name": last_name,
                     })
         self.conn.commit()
         cur.close()
@@ -278,7 +277,7 @@ class StudyHelperBotDB:
         cur.execute(query,
                     {
                         "usos_unit_id": usos_unit_id,
-                        "course":       course,
+                        "course": course,
                     })
         self.conn.commit()
         cur.close()
@@ -298,8 +297,8 @@ class StudyHelperBotDB:
                  "RETURNING student_group_id;")
         cur.execute(query,
                     {
-                        "usos_unit_id":  usos_unit_id,
-                        "group_number":  group_number,
+                        "usos_unit_id": usos_unit_id,
+                        "group_number": group_number,
                         "general_group": general_group,
                     })
         ans_id = cur.fetchone()[0]
@@ -317,7 +316,7 @@ class StudyHelperBotDB:
         cur.execute(query,
                     {
                         "student_group": student_group,
-                        "teacher":       teacher,
+                        "teacher": teacher,
                     })
         self.conn.commit()
         cur.close()

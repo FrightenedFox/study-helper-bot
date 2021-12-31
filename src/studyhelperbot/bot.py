@@ -1,17 +1,15 @@
-import logging
 import json
+import logging
 from dataclasses import dataclass
-from datetime import datetime, timedelta
 
 from aiogram import Bot, Dispatcher, executor, types
 
 from studyhelperbot import config
 from studyhelperbot import initialize_logging
 from studyhelperbot import responses as resp
-from studyhelperbot import usosapi
 from studyhelperbot import sync_usos_data
+from studyhelperbot import usosapi
 from studyhelperbot.db import StudyHelperBotDB
-
 
 initialize_logging()
 bot_params = config("bot")
@@ -144,4 +142,3 @@ if __name__ == "__main__":
     db.connect()
     executor.start_polling(dp, skip_updates=True)
     db.disconnect()
-
