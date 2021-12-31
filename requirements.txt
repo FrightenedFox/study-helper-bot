@@ -1,9 +1,14 @@
 aiogram
 aiosmtplib
+easydict
 flake8
 mypy
 mypy-extensions
 psycopg2
 pytest
 pytest-cov
+pytz
 tox
+rauth
+requests
+setuptools
