@@ -30,7 +30,7 @@ class Permission:
     accept_exams = "accept_exams"
     manage_lectures = "manage_lectures"
     menage_exams = "menage_exams"
-    global_sync = "global_sync"
+    course_sync = "course_sync"
     list_users = "list_users"
     add_users = "add_users"
     remove_users = "remove_users"
@@ -50,10 +50,10 @@ async def usos_send_link(message, response, sync_function):
         await message.answer(url)
         other_details = usos_con.get_request_data()
         other_details["sync_function"] = sync_function
-        db.set_expected_method(tg_chat_id=message.chat.id,
-                               wait_for_answer=True,
-                               expected_method="code_from_usos",
-                               other_details=json.dumps(other_details))
+        db.update_expected_method(tg_chat_id=message.chat.id,
+                                  wait_for_answer=True,
+                                  expected_method="code_from_usos",
+                                  other_details=json.dumps(other_details))
     else:
         logging.error("Unsuccessful connection with USOS")
 
@@ -67,10 +67,10 @@ async def cmd_start(message: types.Message):
             # TODO: make different hello messages for existing and new users
             await message.answer(resp.start())
             if not db.row_exists(tg_chat_id, "tg_chat_id", "chats"):
-                db.create_chat_record(tg_chat_id=tg_chat_id,
+                db.insert_chat_record(tg_chat_id=tg_chat_id,
                                       chat_type=message.chat.type)
             if not db.row_exists(tg_user_id):
-                db.create_new_user_account(tg_user_id=tg_user_id,
+                db.insert_new_user_account(tg_user_id=tg_user_id,
                                            tg_chat_id=tg_chat_id)
 
 
@@ -80,23 +80,50 @@ async def cmd_register(message: types.Message):
     if db.user_is_verified(tg_user_id):
         await message.answer(resp.you_are_already_registered())
     elif db.user_can(tg_user_id, Permission.talk_with_bot):
-        await usos_send_link(message, resp.register, sync_function="user_activation")
+        await usos_send_link(message, resp.register, sync_function="user_verification")
     else:
         await message.answer(resp.permission_conflict())
 
 
-@dp.message_handler(commands=["global_sync"])
-async def cmd_global_sync(message: types.Message):
+@dp.message_handler(commands=["course_sync"])
+async def cmd_course_sync(message: types.Message):
     tg_user_id = message.from_user.id
-    if db.user_is_verified(tg_user_id) and db.user_can(tg_user_id, Permission.global_sync):
-        await usos_send_link(message, resp.wait_for_link, sync_function="global_sync")
+    if db.user_is_verified(tg_user_id) and db.user_can(tg_user_id, Permission.course_sync):
+        await usos_send_link(message, resp.wait_for_link, sync_function="course_sync")
+    else:
+        await message.answer(resp.permission_conflict())
+
+
+@dp.message_handler(commands=["activities_sync"])
+async def cmd_activities_sync(message: types.Message):
+    tg_user_id = message.from_user.id
+    if db.user_is_verified(tg_user_id) and db.user_can(tg_user_id, Permission.course_sync):
+        await usos_send_link(message, resp.wait_for_link, sync_function="activities_sync")
+    else:
+        await message.answer(resp.permission_conflict())
+
+
+@dp.message_handler(commands=["personal_groups_sync"])
+async def cmd_debug_sync(message: types.Message):
+    tg_user_id = message.from_user.id
+    if db.user_is_verified(tg_user_id) and db.user_can(tg_user_id, Permission.course_sync):
+        await usos_send_link(message, resp.wait_for_link, sync_function="personal_groups_sync")
+    else:
+        await message.answer(resp.permission_conflict())
+
+
+@dp.message_handler(commands=["debug_sync"])
+async def cmd_debug_sync(message: types.Message):
+    tg_user_id = message.from_user.id
+    if db.user_is_verified(tg_user_id) and db.user_can(tg_user_id, Permission.course_sync):
+        await usos_send_link(message, resp.wait_for_link, sync_function="debug_sync")
     else:
         await message.answer(resp.permission_conflict())
 
 
 @dp.message_handler()
 async def echo(message: types.Message):
-    if not db.user_is_banned(message.from_user.id):
+    if db.user_can(message.from_user.id, Permission.talk_with_bot):
         waiting_for_anwer, expected_method, other_details = db.get_expected_method(message.chat.id)
         if waiting_for_anwer:
             exp_ans = ExpectedAnswers(message, other_details)
@@ -128,11 +155,11 @@ class ExpectedAnswers:  # TODO: rewrite with states
         except usosapi.USOSAPIException:
             await self.message.answer(resp.incorrect_verification_code())
             # TODO: allow for multiple trials
-            db.set_expected_method(self.tg_chat_id)
+            db.update_expected_method(self.tg_chat_id)
         else:
             await self.message.answer(resp.successful_verification())
-            db.set_expected_method(self.tg_chat_id)
-            getattr(sync_usos_data, self.other_details["sync_function"])(
+            db.update_expected_method(self.tg_chat_id)
+            await getattr(sync_usos_data, self.other_details["sync_function"])(
                 db, self.tg_user_id, usos_con)
             usos_con.logout()
             # TODO: say something in the end xD

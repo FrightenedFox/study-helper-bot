@@ -6,7 +6,8 @@ from studyhelperbot import log_exception, config
 
 
 class StudyHelperBotDB:
-    # TODO: maybe move all sql strings to a separate file?
+    """ Makes the communication with the database easier."""
+
     def __init__(self):
         self.conn = None
         self.is_connected = False
@@ -107,7 +108,7 @@ class StudyHelperBotDB:
             return ans[0]
         pass
 
-    def create_new_user_account(self, tg_user_id, tg_chat_id, permission=1):
+    def insert_new_user_account(self, tg_user_id, tg_chat_id, permission=1):
         """Creates new record in the `users` table."""
         cur = self.conn.cursor()
         query = ("INSERT INTO users (tg_user_id, tg_chat_id, permission) "
@@ -122,7 +123,7 @@ class StudyHelperBotDB:
         cur.close()
         logging.debug(f"Add {tg_user_id=}, {tg_chat_id=}, {permission=}")
 
-    def create_chat_record(self, tg_chat_id, chat_type):
+    def insert_chat_record(self, tg_chat_id, chat_type):
         """Creates new record in the `chats` table."""
         cur = self.conn.cursor()
         query = ("INSERT INTO chats (tg_chat_id, chat_type) "
@@ -159,10 +160,10 @@ class StudyHelperBotDB:
         logging.debug(f"Set verified to {verified} to {tg_user_id=}"
                       f"name: {first_name} {last_name}.")
 
-    def set_expected_method(self, tg_chat_id,
-                            wait_for_answer=False,
-                            expected_method=None,
-                            other_details=None):
+    def update_expected_method(self, tg_chat_id,
+                               wait_for_answer=False,
+                               expected_method=None,
+                               other_details=None):
         """Updates `wait_for_answer` and `expected_answer` values
         for a specific `tg_chat_id` conversation."""
         cur = self.conn.cursor()
@@ -198,6 +199,7 @@ class StudyHelperBotDB:
 
     def get_user_id(self, distinguishable_col, col_value):
         """Get user_id by any distinguishable_col"""
+        # TODO: remove if unused
         cur = self.conn.cursor()
         query = (f"SELECT tg_user_id "
                  f"FROM   users "
@@ -208,7 +210,7 @@ class StudyHelperBotDB:
         logging.debug(f"{distinguishable_col=} - {col_value}")
         return ans
 
-    def get_specific_column(self, where, where_value, col_name, table="users"):
+    def get_specific_value(self, where, where_value, col_name, table="users"):
         """Retrieves a specific value from a specific row."""
         cur = self.conn.cursor()
         query = (f"SELECT {col_name} "
@@ -220,9 +222,9 @@ class StudyHelperBotDB:
         logging.debug(f"{query=}\t{where_value=}")
         return ans
 
-    def set_specific_column(self, where, where_value,
-                            col_name, col_name_value,
-                            table="users"):
+    def update_specific_value(self, where, where_value,
+                              col_name, col_name_value,
+                              table="users"):
         """Updates a specific value from a specific row."""
         cur = self.conn.cursor()
         query = (f"UPDATE    {table} "
@@ -233,21 +235,22 @@ class StudyHelperBotDB:
         cur.close()
         logging.debug(f"{query=}\t{col_name_value=}, {where_value=}")
 
-    def upsert_course(self, course_id, course_name):
+    def upsert_course(self, course_id, course_name, term_id):
         """Updates or inserts a course."""
         cur = self.conn.cursor()
-        query = ("INSERT INTO public.courses (course_id, course_name)"
-                 "VALUES (%(course_id)s, %(course_name)s)"
+        query = ("INSERT INTO public.courses (course_id, course_name, term_id)"
+                 "VALUES (%(course_id)s, %(course_name)s, %(term_id)s)"
                  "ON CONFLICT (course_id) "
                  "DO UPDATE SET course_name = excluded.course_name;")
         cur.execute(query,
                     {
                         "course_id": course_id,
                         "course_name": course_name,
+                        "term_id": term_id,
                     })
         self.conn.commit()
         cur.close()
-        logging.debug(f"{course_name=}, {course_id=}")
+        logging.debug(f"{course_name=}, {course_id=}, {term_id=}")
 
     def upsert_teacher(self, teacher_usos_id, first_name, last_name):
         """Updates or inserts a teacher."""
@@ -283,44 +286,198 @@ class StudyHelperBotDB:
         cur.close()
         logging.debug(f"{usos_unit_id=}, {course=}")
 
-    def upsert_student_group(self,
-                             usos_unit_id,
-                             group_number,
-                             general_group=None):
+    def upsert_group_types(self, group_type_id, group_type_name):
+        """Updates or inserts a group type."""
+        cur = self.conn.cursor()
+        query = ("INSERT INTO public.group_types (group_type_id, group_type_name) "
+                 "VALUES (%(group_type_id)s, %(group_type_name)s)"
+                 "ON CONFLICT (group_type_id) "
+                 "DO UPDATE SET group_type_name = excluded.group_type_name;")
+        cur.execute(query,
+                    {
+                        "group_type_id": group_type_id,
+                        "group_type_name": group_type_name,
+                    })
+        self.conn.commit()
+        cur.close()
+        logging.debug(f"{group_type_id=}, {group_type_name=}")
+
+    def upsert_unit_group(self,
+                          usos_unit_id,
+                          group_number,
+                          group_type):
         """Updates or inserts a student group."""
         cur = self.conn.cursor()
-        query = ("INSERT INTO public.student_groups (usos_unit_id,"
-                 " group_number, general_group) VALUES ("
+        query = ("INSERT INTO public.unit_groups (usos_unit_id,"
+                 " group_number, group_type) VALUES ("
                  "%(usos_unit_id)s, %(group_number)s, %(general_group)s) "
                  "ON CONFLICT (usos_unit_id, group_number) DO "
-                 "UPDATE SET general_group = excluded.general_group "
-                 "RETURNING student_group_id;")
+                 "UPDATE SET group_type = excluded.group_type "
+                 "RETURNING unit_group_id;")
         cur.execute(query,
                     {
                         "usos_unit_id": usos_unit_id,
                         "group_number": group_number,
-                        "general_group": general_group,
+                        "general_group": group_type,
                     })
         ans_id = cur.fetchone()[0]
         self.conn.commit()
         cur.close()
-        logging.debug(f"{usos_unit_id=}, {group_number=}, {general_group=}.")
+        logging.debug(f"{usos_unit_id=}, {group_number=}, {group_type=}.")
         return ans_id
 
-    def upsert_group_teacher(self, student_group, teacher):
-        """Updates or inserts an usos unit."""
+    def upsert_activities(self, start_time, end_time, room, unit_group):
+        """Updates or inserts an activity."""
         cur = self.conn.cursor()
-        query = ("INSERT INTO public.group_teacher (student_group, teacher) "
-                 "VALUES (%(student_group)s, %(teacher)s)"
-                 "ON CONFLICT (student_group, teacher) DO NOTHING ;")
+        query = ("INSERT INTO public.activities "
+                 "(start_time, end_time, room, unit_group) VALUES "
+                 "(%(start_time)s, %(end_time)s, %(room)s, %(unit_group)s)"
+                 "ON CONFLICT (start_time, end_time, unit_group) "
+                 "DO UPDATE SET room = excluded.room;")
         cur.execute(query,
                     {
-                        "student_group": student_group,
+                        "start_time": start_time,
+                        "end_time": end_time,
+                        "room": room,
+                        "unit_group": unit_group,
+                    })
+        self.conn.commit()
+        cur.close()
+        logging.debug(f"{unit_group=} {start_time=} {end_time=} {room=}")
+
+    def insert_group_teacher(self, unit_group, teacher):
+        """Inserts a teacher if he doesn't exist."""
+        cur = self.conn.cursor()
+        query = ("INSERT INTO public.group_teacher (unit_group, teacher) "
+                 "VALUES (%(unit_group)s, %(teacher)s)"
+                 "ON CONFLICT (unit_group, teacher) DO NOTHING ;")
+        cur.execute(query,
+                    {
+                        "unit_group": unit_group,
                         "teacher": teacher,
                     })
         self.conn.commit()
         cur.close()
-        logging.debug(f"{student_group=}, {teacher=}")
+        logging.debug(f"{unit_group=}, {teacher=}")
+
+    def insert_term(self, usos_term_id, term_name, start_date, end_date):
+        """Inserts a term if it doesn't exist."""
+        cur = self.conn.cursor()
+        query = ("INSERT INTO public.terms (usos_term_id, "
+                 "term_name, start_date, end_date) "
+                 "VALUES (%(usos_term_id)s, %(term_name)s, "
+                 "%(start_date)s, %(end_date)s)"
+                 "ON CONFLICT (usos_term_id) DO NOTHING ;")
+        cur.execute(query,
+                    {
+                        "usos_term_id": usos_term_id,
+                        "term_name": term_name,
+                        "start_date": start_date,
+                        "end_date": end_date
+                    })
+        self.conn.commit()
+        cur.close()
+        logging.debug(f"{usos_term_id=} {term_name=} {start_date=} {end_date=}")
+
+    def insert_room(self, room_id):
+        """Inserts a room if it doesn't exist."""
+        cur = self.conn.cursor()
+        query = ("INSERT INTO public.rooms (room_id) "
+                 "VALUES (%(room_id)s)"
+                 "ON CONFLICT (room_id) DO NOTHING ;")
+        cur.execute(query,
+                    {
+                        "room_id": room_id,
+                    })
+        self.conn.commit()
+        cur.close()
+        logging.debug(f"{room_id=}")
+
+    def insert_user_group(self, tg_user_id, usos_unit_id, group_number):
+        """Insert an user-unit_group connection if it doesn't exist."""
+        cur = self.conn.cursor()
+        group_id_query = (f"SELECT unit_group_id "
+                          f"FROM   public.unit_groups "
+                          f"WHERE (usos_unit_id, group_number) = "
+                          f"(%(usos_unit_id)s, %(group_number)s);")
+        cur.execute(group_id_query,
+                    {
+                        "usos_unit_id": usos_unit_id,
+                        "group_number": group_number,
+                    })
+        ans = cur.fetchone()
+        if ans is None:
+            logging.warning(f"Group {usos_unit_id=} {group_number=} "
+                            f"is unknown, skipping")
+        else:
+            unit_group_id = ans[0]
+            insert_student_query = ("INSERT INTO public.users_groups "
+                                    "(user_id, group_id) "
+                                    "VALUES (%(user_id)s, %(group_id)s)"
+                                    "ON CONFLICT (user_id, group_id) "
+                                    "DO NOTHING ;")
+            cur.execute(insert_student_query,
+                        {
+                            "user_id": tg_user_id,
+                            "group_id": unit_group_id,
+                        })
+            logging.debug(f"{tg_user_id=}, {unit_group_id=}")
+        self.conn.commit()
+        cur.close()
+
+    def insert_study_programme(self, programme_id, programme_name):
+        """Inserts a programme if it doesn't exist."""
+        cur = self.conn.cursor()
+        query = ("INSERT INTO public.study_programmes "
+                 "(programme_id, programme_name) "
+                 "VALUES (%(programme_id)s, %(programme_name)s)"
+                 "ON CONFLICT (programme_id) DO NOTHING ;")
+        cur.execute(query,
+                    {
+                        "programme_id": programme_id,
+                        "programme_name": programme_name,
+                    })
+        self.conn.commit()
+        cur.close()
+        logging.debug(f"{programme_id=}, {programme_name=}")
+
+    def insert_user_programme(self, user_id, programme_id):
+        """Insert an user-programme connection if it doesn't exist."""
+        cur = self.conn.cursor()
+        query = ("INSERT INTO public.user_programme (user_id, programme_id) "
+                 "VALUES (%(user_id)s, %(programme_id)s)"
+                 "ON CONFLICT (user_id, programme_id) DO NOTHING;")
+        cur.execute(query,
+                    {
+                        "user_id": user_id,
+                        "programme_id": programme_id,
+                    })
+        self.conn.commit()
+        cur.close()
+        logging.debug(f"{user_id=} {programme_id=}")
+
+    def get_all_unit_groups(self):
+        cur = self.conn.cursor()
+        query = ("SELECT (unit_group_id, usos_unit_id, group_number) "
+                 "FROM unit_groups;")
+        cur.execute(query)
+        ans = cur.fetchall()
+        cur.close()
+        logging.debug(f"Get all groups from unit_groups table")
+        return [row[0][1:-1].split(",") for row in ans]
+
+    def get_unit_group_term_info(self, usos_unit_id):
+        cur = self.conn.cursor()
+        query = ("SELECT terms.end_date "
+                 "FROM terms, courses, usos_units "
+                 "WHERE (usos_unit_id) = %(usos_unit_id)s "
+                 "AND usos_units.course = courses.course_id "
+                 "AND courses.term_id = terms.usos_term_id;")
+        cur.execute(query, {"usos_unit_id": usos_unit_id})
+        ans = cur.fetchone()
+        cur.close()
+        logging.debug(f"{usos_unit_id=}, term end date {ans}")
+        return ans[0]
 
 
 if __name__ == "__main__":
