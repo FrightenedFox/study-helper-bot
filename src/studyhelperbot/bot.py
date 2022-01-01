@@ -2,7 +2,14 @@ import json
 import logging
 from dataclasses import dataclass
 
-from aiogram import Bot, Dispatcher, executor, types
+import aiogram.utils.markdown as md
+from aiogram import Bot, Dispatcher, types
+from aiogram.contrib.fsm_storage.rethinkdb import RethinkDBStorage
+from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters import Text
+from aiogram.dispatcher.filters.state import State, StatesGroup
+from aiogram.types import ParseMode
+from aiogram.utils import executor
 
 from studyhelperbot import config
 from studyhelperbot import initialize_logging
@@ -14,7 +21,9 @@ from studyhelperbot.db import StudyHelperBotDB
 initialize_logging()
 bot_params = config("bot")
 bot = Bot(bot_params["token"])
-dp = Dispatcher(bot)
+rethinkdb_params = config("rethinkdb")
+storage = RethinkDBStorage(**rethinkdb_params)
+dp = Dispatcher(bot, storage=storage)
 db = StudyHelperBotDB()
 
 
@@ -124,8 +133,8 @@ async def cmd_debug_sync(message: types.Message):
 @dp.message_handler()
 async def echo(message: types.Message):
     if db.user_can(message.from_user.id, Permission.talk_with_bot):
-        waiting_for_anwer, expected_method, other_details = db.get_expected_method(message.chat.id)
-        if waiting_for_anwer:
+        waiting_for_answer, expected_method, other_details = db.get_expected_method(message.chat.id)
+        if waiting_for_answer:
             exp_ans = ExpectedAnswers(message, other_details)
             await getattr(exp_ans, expected_method)()
         else:
@@ -169,3 +178,5 @@ if __name__ == "__main__":
     db.connect()
     executor.start_polling(dp, skip_updates=True)
     db.disconnect()
+    storage.close()
+    storage.wait_closed()
