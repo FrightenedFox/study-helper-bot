@@ -394,7 +394,7 @@ class StudyHelperBotDB:
         logging.debug(f"{room_id=}")
 
     def insert_user_group(self, tg_user_id, usos_unit_id, group_number):
-        """Insert an user-unit_group connection if it doesn't exist."""
+        """Insert a user-unit_group connection if it doesn't exist."""
         cur = self.conn.cursor()
         group_id_query = (f"SELECT unit_group_id "
                           f"FROM   public.unit_groups "
@@ -442,7 +442,7 @@ class StudyHelperBotDB:
         logging.debug(f"{programme_id=}, {programme_name=}")
 
     def insert_user_programme(self, user_id, programme_id):
-        """Insert an user-programme connection if it doesn't exist."""
+        """Insert a user-programme connection if it doesn't exist."""
         cur = self.conn.cursor()
         query = ("INSERT INTO public.user_programme (user_id, programme_id) "
                  "VALUES (%(user_id)s, %(programme_id)s)"
