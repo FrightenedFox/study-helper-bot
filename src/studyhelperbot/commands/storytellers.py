@@ -29,7 +29,6 @@ async def get_db_callback(_: types.Message, db: StudyHelperBotDB):
 
 def answer_overview(tg_user_id, course_id,
                     n_days, db: StudyHelperBotDB):
-    print(f"{course_id=}, {n_days=}")
     if n_days == "NULL":
         end_date = None
     else:

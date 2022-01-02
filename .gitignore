@@ -2,6 +2,7 @@
 config.ini
 /logs/
 /rethinkdb_data/
+rethinkdb_setup.sh
 
 ### Python template
 # Byte-compiled / optimized / DLL files
