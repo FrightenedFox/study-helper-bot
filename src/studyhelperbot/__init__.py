@@ -6,6 +6,7 @@ from studyhelperbot.logging_setup import initialize_logging
 from studyhelperbot.commands.storytellers import register_messages_storytellers
 from studyhelperbot.commands.common import register_messages_common
 from studyhelperbot.commands.usos_operations import register_messages_usos_operations
+from studyhelperbot.commands.commits import register_messages_commits
 
 __all__ = [
     "exception_info",
@@ -17,4 +18,5 @@ __all__ = [
     "register_messages_storytellers",
     "register_messages_common",
     "register_messages_usos_operations",
+    "register_messages_commits",
 ]

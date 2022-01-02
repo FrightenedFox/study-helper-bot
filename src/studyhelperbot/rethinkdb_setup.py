@@ -10,7 +10,7 @@ def setup_rethinkdb():
     conn = r.connect(setup_config["host"], setup_config["port"]).repl()
 
     r.db("rethinkdb").table("users").insert(
-        {"id": db_config["user"],"password": db_config["password"]}).run(conn)
+        {"id": db_config["user"], "password": db_config["password"]}).run(conn)
     r.db("rethinkdb").table("users").get("admin").update(
         {"password": setup_config["password"]}).run(conn)
     r.db_create(db_config["db"]).run(conn)

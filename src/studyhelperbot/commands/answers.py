@@ -60,6 +60,11 @@ def permission_conflict(lang="pl"):
         return "Niestety, nie masz uprawnień do tego polecenia! :p"
 
 
+def choose_commits(lang="pl"):
+    if lang == "pl":
+        return "Prosze wybrać akcję:"
+
+
 def choose_storytellers(ending, lang="pl"):
     endings = {
         "days": {"pl": "ilość dni"},

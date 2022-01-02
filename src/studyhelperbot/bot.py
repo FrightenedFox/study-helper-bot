@@ -20,15 +20,21 @@ from studyhelperbot.db import StudyHelperBotDB
 from studyhelperbot import register_messages_storytellers
 from studyhelperbot import register_messages_common
 from studyhelperbot import register_messages_usos_operations
+from studyhelperbot import register_messages_commits
 
 
 async def set_commands(bot: Bot):
     commands = [
-        BotCommand(command="/overview", description="Quick info about course"),
-        BotCommand(command="/register", description="Verify your identity"),
-        BotCommand(command="/sync_my_groups",
-                   description="Add me to my groups"),
-        BotCommand(command="/cancel", description="Cancel any action")
+        BotCommand(
+            command="/overview", description="Quick info about course"),
+        BotCommand(
+            command="/commit", description="Add some info to the database"),
+        BotCommand(
+            command="/register", description="Verify your identity"),
+        BotCommand(
+            command="/sync_my_groups", description="Add me to my groups"),
+        BotCommand(
+            command="/cancel", description="Cancel any action")
     ]
     await bot.set_my_commands(commands)
 
@@ -58,11 +64,15 @@ async def main(db: StudyHelperBotDB):
     register_messages_common(dp)
     register_messages_storytellers(dp)
     register_messages_usos_operations(dp)
+    register_messages_commits(dp)
 
     await set_commands(bot)
 
     await dp.skip_updates()
     await dp.start_polling()
+
+    await storage.close()
+    await storage.wait_closed()
 
 
 if __name__ == '__main__':

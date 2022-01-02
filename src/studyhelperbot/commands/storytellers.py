@@ -23,10 +23,6 @@ cb_days = CallbackData("days", "n_days")
 cb_courses = CallbackData("courses", "course_id")
 
 
-async def get_db_callback(_: types.Message, db: StudyHelperBotDB):
-    return db
-
-
 def answer_overview(tg_user_id, course_id,
                     n_days, db: StudyHelperBotDB):
     if n_days == "NULL":
