@@ -7,6 +7,7 @@ from studyhelperbot import log_exception, config
 
 class StudyHelperBotDB:
     """ Makes the communication with the database easier."""
+
     # TODO: implement typesetting f(x: int, y: real)
 
     def __init__(self):

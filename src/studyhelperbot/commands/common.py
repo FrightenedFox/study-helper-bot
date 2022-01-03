@@ -1,9 +1,8 @@
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters import Text, IDFilter
 
-from studyhelperbot.db import StudyHelperBotDB
 from studyhelperbot import answers as ans
+from studyhelperbot.db import StudyHelperBotDB
 
 
 async def cmd_start(message: types.Message,

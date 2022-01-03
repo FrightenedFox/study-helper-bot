@@ -2,14 +2,13 @@ import logging
 
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters import Text, IDFilter
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from studyhelperbot.db import StudyHelperBotDB
 from studyhelperbot import answers as ans
-from studyhelperbot import usosapi
 from studyhelperbot import config
 from studyhelperbot import sync_usos_data
+from studyhelperbot import usosapi
+from studyhelperbot.db import StudyHelperBotDB
 
 
 class VerifyAndSync(StatesGroup):
@@ -54,8 +53,8 @@ async def start_registration(message: types.Message,
 
 
 async def sync_users_groups(message: types.Message,
-                      state: FSMContext,
-                      db: StudyHelperBotDB):
+                            state: FSMContext,
+                            db: StudyHelperBotDB):
     if db.user_is_verified(message.from_user.id):
         await usos_send_link(message=message, answer=ans.register,
                              state=state, sync_function="sync_users_groups")

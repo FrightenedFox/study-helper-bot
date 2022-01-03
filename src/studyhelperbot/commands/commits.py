@@ -1,17 +1,11 @@
-from contextlib import suppress
 from math import ceil
-import datetime as dt
 
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters import IDFilter
-from aiogram.utils.callback_data import CallbackData
-from aiogram.utils.exceptions import MessageNotModified
 from aiogram.dispatcher.filters.state import State, StatesGroup
+from aiogram.utils.callback_data import CallbackData
 
 from studyhelperbot import answers as ans
-from studyhelperbot.db import StudyHelperBotDB
-from studyhelperbot.commands.storytellers import get_courses_keyboard
 
 cb_commits = CallbackData("commit", "action")
 

@@ -1,10 +1,9 @@
+import datetime as dt
 from contextlib import suppress
 from math import ceil
-import datetime as dt
 
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters import IDFilter
 from aiogram.utils.callback_data import CallbackData
 from aiogram.utils.exceptions import MessageNotModified
 
@@ -129,4 +128,3 @@ def register_messages_storytellers(dp: Dispatcher):
     dp.register_callback_query_handler(day_change_callback,
                                        cb_days.filter(),
                                        state="*")
-

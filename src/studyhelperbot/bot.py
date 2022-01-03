@@ -1,26 +1,17 @@
 import asyncio
-import json
-import logging
-from dataclasses import dataclass
 
-import aiogram.utils.markdown as md
 from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.fsm_storage.rethinkdb import RethinkDBStorage
 from aiogram.dispatcher.middlewares import BaseMiddleware
-from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters import Text
-from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types.bot_command import BotCommand
-from aiogram.types import Message
-from aiogram.utils import executor
 
 from studyhelperbot import config
 from studyhelperbot import initialize_logging
-from studyhelperbot.db import StudyHelperBotDB
-from studyhelperbot import register_messages_storytellers
-from studyhelperbot import register_messages_common
-from studyhelperbot import register_messages_usos_operations
 from studyhelperbot import register_messages_commits
+from studyhelperbot import register_messages_common
+from studyhelperbot import register_messages_storytellers
+from studyhelperbot import register_messages_usos_operations
+from studyhelperbot.db import StudyHelperBotDB
 
 
 async def set_commands(bot: Bot):
@@ -45,7 +36,7 @@ class PostgresMiddleware(BaseMiddleware):
         self.db = db
         super(PostgresMiddleware, self).__init__()
 
-    async def on_pre_process_message(self, _:types.Message, data: dict):
+    async def on_pre_process_message(self, _: types.Message, data: dict):
         data["db"] = self.db
 
     async def on_pre_process_callback_query(self, _: types.CallbackQuery,

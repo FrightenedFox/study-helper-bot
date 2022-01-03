@@ -1,4 +1,5 @@
 from rethinkdb import RethinkDB
+
 from studyhelperbot import config
 
 

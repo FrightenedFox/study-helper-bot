@@ -1,6 +1,3 @@
-import datetime as dt
-
-
 def start(lang="pl"):
     # TODO: finish, correct and improve every answer
     if lang == "pl":
