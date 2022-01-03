@@ -9,7 +9,7 @@ from studyhelperbot.db import StudyHelperBotDB
 pl_tz = pytz.timezone("Europe/Warsaw")
 
 
-async def user_verification(
+async def verify_user(
         db: StudyHelperBotDB,
         tg_user_id: str,
         usos_con: usosapi.USOSAPIConnection):
@@ -40,7 +40,7 @@ def get_active_terms(groups_participant):
     return active_terms
 
 
-async def course_sync(
+async def sync_course_groups(
         db: StudyHelperBotDB,
         tg_user_id: str,
         usos_con: usosapi.USOSAPIConnection):
@@ -104,7 +104,7 @@ async def course_sync(
                 db.insert_group_teacher(unit_group_index, lecturer_id)
 
 
-async def personal_groups_sync(
+async def sync_users_groups(
         db: StudyHelperBotDB,
         tg_user_id: str,
         usos_con: usosapi.USOSAPIConnection):
@@ -121,7 +121,7 @@ async def personal_groups_sync(
                                  group["group_number"])
 
 
-async def activities_sync(
+async def sync_activities(
         db: StudyHelperBotDB,
         tg_user_id: str,
         usos_con: usosapi.USOSAPIConnection):
@@ -142,8 +142,8 @@ async def activities_sync(
             for activity in timetable_group:
                 start_time_naive = dt.datetime.fromisoformat(activity["start_time"])
                 end_time_naive = dt.datetime.fromisoformat(activity["end_time"])
-                start_time_pl_tz = pl_tz.localize(start_time_naive, is_dst=1)
-                end_time_pl_tz = pl_tz.localize(end_time_naive, is_dst=1)
+                start_time_pl_tz = pl_tz.localize(start_time_naive, is_dst=True)
+                end_time_pl_tz = pl_tz.localize(end_time_naive, is_dst=True)
 
                 db.insert_room(activity["room_number"])
                 db.upsert_activities(
@@ -156,22 +156,3 @@ async def activities_sync(
             current_date += dt.timedelta(days=7)
         # Artificially slow down requests, so that USOS doesn't get angry
         await asyncio.sleep(3)
-    pass
-
-
-async def debug_sync(
-        db: StudyHelperBotDB,
-        tg_user_id: str,
-        usos_con: usosapi.USOSAPIConnection):
-    response = usos_con.get(
-        service="services/progs/student",
-        user_id="234394",
-    )
-    print(response)
-
-
-if __name__ == '__main__':
-    db = StudyHelperBotDB()
-    db.connect()
-    debug_sync(db, None, None)
-    db.disconnect()

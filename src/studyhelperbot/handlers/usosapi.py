@@ -23,7 +23,7 @@ _REQUEST_TOKEN_SUFFIX = 'services/oauth/request_token'
 _AUTHORIZE_SUFFIX = 'services/oauth/authorize'
 _ACCESS_TOKEN_SUFFIX = 'services/oauth/access_token'
 
-SCOPES = 'student_exams|studies|other_emails'
+SCOPES = 'student_exams|studies'
 
 _LOGGER = logging.getLogger('USOSAPI')
 _DOWNLOAD_LOGGER = logging.getLogger('USOSAPI.download')
