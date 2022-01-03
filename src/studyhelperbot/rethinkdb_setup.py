@@ -12,7 +12,7 @@ def setup_rethinkdb():
     r.db("rethinkdb").table("users").insert(
         {"id": db_config["user"], "password": db_config["password"]}).run(conn)
     r.db("rethinkdb").table("users").get("admin").update(
-        {"password": setup_config["password"]}).run(conn)
+        {"password": setup_config["admin_password"]}).run(conn)
     r.db_create(db_config["db"]).run(conn)
     r.db(db_config["db"]).grant(
         db_config["user"],

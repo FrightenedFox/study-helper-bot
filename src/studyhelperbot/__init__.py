@@ -1,4 +1,4 @@
-from studyhelperbot.config import config
+from studyhelperbot.config.parse_config import config
 from studyhelperbot.commands import answers
 from studyhelperbot.handlers import usosapi
 from studyhelperbot.handlers.errors import exception_info, log_exception

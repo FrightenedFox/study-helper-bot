@@ -1,5 +1,6 @@
 import datetime as dt
 
+
 def start(lang="pl"):
     # TODO: finish, correct and improve every answer
     if lang == "pl":
@@ -7,7 +8,7 @@ def start(lang="pl"):
                 "Inżynierii i Analizy Danych na PRz! "
                 "Żeby dowiedzieć się więcej o moich możliwościach, "
                 "wpisz (lub kliknij) /help.\n\n"
-                "Żeby zarejstrować się wpisz /register.")
+                "Żeby zarejestrować się wpisz /register.")
 
 
 def register(url, lang="pl"):
