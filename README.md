@@ -65,6 +65,7 @@ database, table and user using values from the config file.
 
 ```shell
 cd studyhelperbot/src/studyhelperbot
+python3 rethinkdb_setup.py
 ```
 
 ### Telegram
