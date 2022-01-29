@@ -18,8 +18,8 @@ async def set_commands(bot: Bot):
     commands = [
         BotCommand(
             command="/overview", description="Quick info about course"),
-        # BotCommand(
-        #     command="/commit", description="Add some info to the database"),
+        BotCommand(
+            command="/commit", description="Add some info to the database"),
         BotCommand(
             command="/register", description="Verify your identity"),
         BotCommand(

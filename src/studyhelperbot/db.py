@@ -1,14 +1,16 @@
 import logging
 
 import psycopg2
+import sqlalchemy
+import pandas as pd
 
 from studyhelperbot import log_exception, config
 
 
+# TODO: implement typesetting f(x: int, y: real)
 class StudyHelperBotDB:
     """ Makes the communication with the database easier."""
-
-    # TODO: implement typesetting f(x: int, y: real)
+    sqlalchemy_engine: sqlalchemy.engine.base.Engine
 
     def __init__(self):
         self.conn = None
@@ -20,6 +22,9 @@ class StudyHelperBotDB:
             params = config("postgresql")
             logging.info("Connecting to the PostgreSQL database...")
             self.conn = psycopg2.connect(**params)
+            self.sqlalchemy_engine = sqlalchemy.create_engine(
+                'postgresql+psycopg2://',
+                creator=lambda: self.conn)
 
             # Display PostgreSQL version
             cur = self.conn.cursor()
@@ -37,6 +42,7 @@ class StudyHelperBotDB:
         """Disconnect from the PostgreSQL database server."""
         if self.conn is not None:
             self.conn.close()
+            self.sqlalchemy_engine.dispose()
             self.conn = None
             logging.info("Database connection closed.")
             self.is_connected = False
@@ -201,24 +207,29 @@ class StudyHelperBotDB:
         return ans
 
     def get_all_user_courses(self, tg_user_id):
-        cur = self.conn.cursor()
-        query = (f"SELECT DISTINCT courses.course_id, courses.course_name "
-                 f"FROM courses, usos_units, unit_groups, users_groups "
-                 f"WHERE users_groups.user_id = %(tg_user_id)s AND"
-                 f"      unit_groups.unit_group_id = users_groups.group_id AND"
-                 f"      usos_units.usos_unit_id = unit_groups.usos_unit_id AND"
-                 f"      courses.course_id = usos_units.course;")
-        cur.execute(query, {"tg_user_id": tg_user_id})
-        ans = cur.fetchall()
-        cur.close()
+        query = (f"SELECT DISTINCT c.course_id, c.course_name "
+                 f"FROM users_groups "
+                 f"JOIN unit_groups ug  ON "
+                 f"  users_groups.group_id = ug.unit_group_id "
+                 f"JOIN usos_units uu   ON ug.usos_unit_id = uu.usos_unit_id "
+                 f"JOIN courses c       ON uu.course = c.course_id "
+                 f"WHERE users_groups.user_id = %(tg_user_id)s;")
+        df = pd.read_sql(query, self.sqlalchemy_engine)
+        df.columns = ["course_id", "course_name"]
         logging.debug(f"{tg_user_id=}")
-        return ans
+        return df
 
-    def get_user_activities_details(self, tg_user_id,
+    def get_user_activities_details(self, tg_user_id, start_date=None,
                                     end_date=None, course_id=None):
+        # TODO: accomplish with pandas
         cur = self.conn.cursor()
         course_id_query, end_date_query = "", ""
         query_dict = {"tg_user_id": tg_user_id}
+        if start_date:
+            start_date_query = " AND act.start_time >= %(start_date)s"
+            query_dict["start_date"] = start_date
+        else:
+            start_date_query = " AND act.start_time >= current_timestamp"
         if end_date:
             end_date_query = "AND act.start_time <= %(end_date)s"
             query_dict["end_date"] = end_date
@@ -244,8 +255,7 @@ class StudyHelperBotDB:
                  f"JOIN activities act ON "
                  f"  act.unit_group = ung.unit_group_id "
                  f"WHERE users_groups.user_id = %(tg_user_id)s "
-                 f"  AND act.start_time >= current_timestamp "
-                 f"  {end_date_query} {course_id_query} "
+                 f"  {end_date_query} {course_id_query} {start_date_query} "
                  f"ORDER BY act.start_time;")
         cur.execute(query, query_dict)
         ans = cur.fetchall()
@@ -490,4 +500,5 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     db = StudyHelperBotDB()
     db.connect()
+    print(type(db.conn))
     db.disconnect()

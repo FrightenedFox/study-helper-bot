@@ -63,7 +63,7 @@ def choose_commits(lang="pl"):
         return "Prosze wybrać akcję:"
 
 
-def choose_storytellers(ending, lang="pl"):
+def choose_request(ending, lang="pl"):
     endings = {
         "days": {"pl": "ilość dni"},
         "courses": {"pl": "przedmiot"}

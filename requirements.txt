@@ -3,6 +3,7 @@ aiosmtplib
 flake8
 mypy
 mypy-extensions
+pandas
 psycopg2
 pytest
 pytest-cov
@@ -12,3 +13,4 @@ tox
 requests
 rethinkdb
 setuptools
+sqlalchemy
