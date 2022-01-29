@@ -220,32 +220,33 @@ class StudyHelperBotDB:
         course_id_query, end_date_query = "", ""
         query_dict = {"tg_user_id": tg_user_id}
         if end_date:
-            end_date_query = "AND activities.start_time <= %(end_date)s"
+            end_date_query = "AND act.start_time <= %(end_date)s"
             query_dict["end_date"] = end_date
         if course_id:
-            course_id_query = "AND courses.course_id = %(course_id)s"
+            course_id_query = "AND crs.course_id = %(course_id)s"
             query_dict["course_id"] = course_id
-        query = (f"SELECT activities.activity_id, "
-                 f"       activities.start_time at time zone 'cet', "
-                 f"       activities.end_time at time zone 'cet', "
-                 f"       activities.room, "
-                 f"       group_types.group_type_id, "
-                 f"       unit_groups.group_number, "
-                 f"       courses.course_name "
-                 f"FROM courses, "
-                 f"     usos_units, "
-                 f"     users_groups, "
-                 f"     unit_groups, "
-                 f"     activities, "
-                 f"     group_types "
+        query = (f"SELECT act.activity_id, "
+                 f"       act.start_time at time zone 'cet', "
+                 f"       act.end_time at time zone 'cet', "
+                 f"       act.room, "
+                 f"       grt.group_type_id, "
+                 f"       ung.group_number, "
+                 f"       crs.course_name "
+                 f"FROM courses crs "
+                 f"JOIN usos_units ON "
+                 f"  crs.course_id = usos_units.course "
+                 f"JOIN unit_groups ung ON "
+                 f"  ung.usos_unit_id = usos_units.usos_unit_id "
+                 f"JOIN group_types grt ON "
+                 f"  ung.group_type = grt.group_type_id "
+                 f"JOIN users_groups ON "
+                 f"  ung.unit_group_id = users_groups.group_id "
+                 f"JOIN activities act ON "
+                 f"  act.unit_group = ung.unit_group_id "
                  f"WHERE users_groups.user_id = %(tg_user_id)s "
-                 f"  AND courses.course_id = usos_units.course "
-                 f"  AND unit_groups.usos_unit_id = usos_units.usos_unit_id "
-                 f"  AND unit_groups.group_type = group_types.group_type_id "
-                 f"  AND users_groups.group_id = unit_groups.unit_group_id "
-                 f"  AND activities.unit_group = unit_groups.unit_group_id "
+                 f"  AND act.start_time >= current_timestamp "
                  f"  {end_date_query} {course_id_query} "
-                 f"ORDER BY activities.start_time;")
+                 f"ORDER BY act.start_time;")
         cur.execute(query, query_dict)
         ans = cur.fetchall()
         cur.close()
