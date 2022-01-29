@@ -11,35 +11,38 @@ localizations = {
 }
 
 
-def get_commits_keyboard(commit_types, callback_data, n_cols=1):
+def get_column_keyboard(values_dict, callback_name, callback_key, n_cols=1):
     # TODO: if n_cols is still == 1 and it is the best option -> rewrite
     #  this function, since it can be implemented much much easily
     keyboard = types.InlineKeyboardMarkup(row_width=n_cols)
 
-    n_rows = ceil(len(commit_types) / n_cols)
+    n_rows = ceil(len(values_dict) / n_cols)
     for row_id in range(n_rows):
         start = row_id * n_cols
         stop = (row_id + 1) * n_cols
-        stop = len(commit_types) if stop > len(commit_types) else stop
-        actions, names = list(commit_types), list(commit_types.values())
-        for action, name in zip(actions[start:stop], names[start:stop]):
+        stop = len(values_dict) if stop > len(values_dict) else stop
+        keys, values = list(values_dict), list(values_dict.values())
+        for key, value in zip(keys[start:stop], values[start:stop]):
+            callback_new_value = {callback_key: key}
             keyboard.insert(types.InlineKeyboardButton(
-                text=name["pl"],
-                callback_data=callback_data.new(action=action)
+                text=value,
+                callback_data=callback_name.new(**callback_new_value)
             ))
         keyboard.row()
     return keyboard
 
 
-def get_courses_keyboard(courses, course_ids, callback_data, n_cols=2):
+def get_courses_keyboard(courses, course_ids, callback_data,
+                         all_courses_button=True, n_cols=2):
     keyboard = types.InlineKeyboardMarkup(row_width=n_cols)
 
-    # Add "ALL" button at the first row
-    keyboard.insert(types.InlineKeyboardButton(
-        text=localizations["all_courses"]["pl"],
-        callback_data=callback_data.new(course_id="NULL")
-    ))
-    keyboard.row()
+    if all_courses_button:
+        # Add "ALL" button at the first row
+        keyboard.insert(types.InlineKeyboardButton(
+            text=localizations["all_courses"]["pl"],
+            callback_data=callback_data.new(course_id="NULL")
+        ))
+        keyboard.row()
 
     n_rows = ceil(len(courses) / n_cols)
     for row_id in range(n_rows):

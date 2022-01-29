@@ -159,40 +159,6 @@ class StudyHelperBotDB:
         logging.debug(f"Set verified to {verified} to {tg_user_id=} "
                       f"name: {first_name} {last_name}.")
 
-    def update_expected_method(self, tg_chat_id,
-                               wait_for_answer=False,
-                               expected_method=None,
-                               other_details=None):
-        """Updates `wait_for_answer` and `expected_answer` values
-        for a specific `tg_chat_id` conversation."""
-        cur = self.conn.cursor()
-        query = ("UPDATE    chats "
-                 "SET       wait_for_answer = %(wait_for_answer)s, "
-                 "          expected_method = %(expected_method)s,"
-                 "          other_details = %(other_details)s "
-                 "WHERE     tg_chat_id = %(tg_chat_id)s;")
-        cur.execute(query, {"wait_for_answer": wait_for_answer,
-                            "expected_method": expected_method,
-                            "other_details": other_details,
-                            "tg_chat_id": tg_chat_id})
-        self.conn.commit()
-        cur.close()
-        logging.debug(f"{tg_chat_id=} {wait_for_answer=} {expected_method=}")
-
-    def get_expected_method(self, tg_chat_id):
-        """Retrieves `wait_for_answer` and `expected_answer` values
-        for a specific `tg_chat_id` conversation."""
-        cur = self.conn.cursor()
-        query = ("SELECT wait_for_answer, expected_method, other_details "
-                 "FROM   chats "
-                 "WHERE  tg_chat_id = %s;")
-        cur.execute(query, (tg_chat_id,))
-        ans = cur.fetchone()
-        cur.close()
-        logging.debug(f"{tg_chat_id=} wait_for_answer={ans[0]} "
-                      f"expected_answer='{ans[1]}'")
-        return ans
-
     def get_user_id(self, distinguishable_col, col_value):
         """Get user_id by any distinguishable_col"""
         # TODO: remove if unused
@@ -214,15 +180,14 @@ class StudyHelperBotDB:
                  f"JOIN usos_units uu   ON ug.usos_unit_id = uu.usos_unit_id "
                  f"JOIN courses c       ON uu.course = c.course_id "
                  f"WHERE users_groups.user_id = %(tg_user_id)s;")
-        df = pd.read_sql(query, self.sqlalchemy_engine)
+        df = pd.read_sql(query, self.sqlalchemy_engine,
+                         params={"tg_user_id": tg_user_id})
         df.columns = ["course_id", "course_name"]
         logging.debug(f"{tg_user_id=}")
         return df
 
     def get_user_activities_details(self, tg_user_id, start_date=None,
                                     end_date=None, course_id=None):
-        # TODO: accomplish with pandas
-        cur = self.conn.cursor()
         course_id_query, end_date_query = "", ""
         query_dict = {"tg_user_id": tg_user_id}
         if start_date:
@@ -257,11 +222,13 @@ class StudyHelperBotDB:
                  f"WHERE users_groups.user_id = %(tg_user_id)s "
                  f"  {end_date_query} {course_id_query} {start_date_query} "
                  f"ORDER BY act.start_time;")
-        cur.execute(query, query_dict)
-        ans = cur.fetchall()
-        cur.close()
+        df = pd.read_sql(query, self.sqlalchemy_engine, params=query_dict,
+                         parse_dates={"start_date": {"format": "%Y-%m-%d"},
+                                      "end_date":   {"format": "%Y-%m-%d"}})
+        df.columns = ["activity_id", "start_time", "end_time", "room",
+                      "group_type", "group_number", "course_name"]
         logging.debug(f"{tg_user_id=} {course_id=} {end_date}")
-        return ans
+        return df
 
     def get_specific_value(self, where, where_value, col_name, table="users"):
         """Retrieves a specific value from a specific row."""

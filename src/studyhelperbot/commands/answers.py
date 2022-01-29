@@ -1,3 +1,5 @@
+from pandas import DataFrame
+
 def start(lang="pl"):
     # TODO: finish, correct and improve every answer
     if lang == "pl":
@@ -72,24 +74,31 @@ def choose_request(ending, lang="pl"):
         return f"Proszę wybrać {endings[ending][lang]}:"
 
 
-def storytellers_overview(activities, lang="pl"):
+def choose_from_results(course, date, lang="pl"):
+    if lang == "pl":
+        return (f"Wybrany przedmiot: \n\t*{course}*\n"
+                f"wybrany dzień: \n\t*{date}*\n"
+                f"Znalezione zajęcia:")
+
+
+def storytellers_overview(activities: DataFrame, lang="pl"):
     # TODO: add user preferences and modes
     #  consider rendering and showing an image
     result = ""
-    if not activities:
+    if activities.shape[0] == 0:
         result = "Brak wyników :p"
-    elif len(activities) < 10:
+    elif activities.shape[0] <= 10:
         result += "```"
         last_date = None
-        for activity in activities:
-            if last_date != activity[1].date():
-                last_date = activity[1].date()
+        for ind, act in activities.iterrows():
+            if last_date != act.start_time.date():
+                last_date = act.start_time.date()
                 result += f"\n{last_date.strftime(' %a %d %B %Y '):=^35}\n"
-            result += f"{activity[6]:.<24.22}"
-            result += f"{activity[1].time().strftime('%H:%M-')}"
-            result += f"{activity[2].time().strftime('%H:%M')}\n"
-            result += f"{activity[4]:>7.3} {activity[5]:<3}"
-            result += f"{activity[3]:<25.15}\n"
+            result += f"{act.course_name:.<24.22}"
+            result += f"{act.start_time.time().strftime('%H:%M-')}"
+            result += f"{act.end_time.time().strftime('%H:%M')}\n"
+            result += f"{act.group_type:>7.3} {act.group_number:<3}"
+            result += f"{act.room:<25.15}\n"
         result += "```"
     else:
         result = "Too many results (>10). Coming soon..."
@@ -97,3 +106,17 @@ def storytellers_overview(activities, lang="pl"):
     result = result.replace("(", "\\(").replace(")", "\\)").replace(">", "\\>")
     if lang == "pl":
         return result
+
+
+def enter_date(lang="pl"):
+    if lang == "pl":
+        return "Prosze podać datę zajęcia (używając formatu dd.mm.rrrr):"
+
+
+def incorrect_date(lang="pl"):
+    if lang == "pl":
+        return ("Podana wartość nie odpowiada formatowi daty dd.mm.rrrr, "
+                "spróbuj ponownie wpisać datę. \n\n"
+                "Możesz również wyjść z aktualnej procedury "
+                "wpisując \\cancel")
+
