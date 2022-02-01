@@ -321,10 +321,11 @@ alter table log_activities
 create table log_tests
 (
     log_test_id        integer generated always as identity,
-    activity           int                                   not null
+    activity           int
         constraint log_tests_activity_fk
             references activities
             on delete restrict,
+    exam_timestamp     timestamp,
     test_type          text,
     num_questions      int,
     duration_min       int,

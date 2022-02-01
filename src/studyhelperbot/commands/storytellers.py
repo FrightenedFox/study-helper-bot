@@ -31,7 +31,7 @@ def answer_overview(tg_user_id, course_id,
 async def overview(message: types.Message, db: StudyHelperBotDB):
     courses_df = db.get_all_user_courses(message.from_user.id)
     await message.answer(
-        ans.choose_request("courses"),
+        ans.choose_request("course"),
         reply_markup=kb.get_courses_keyboard(
             courses_df.course_name, courses_df.course_id, cb_courses)
     )
@@ -42,7 +42,7 @@ async def course_change_callback(call: types.CallbackQuery,
                                  state: FSMContext):
     course_id = callback_data["course_id"]
     await state.update_data({"course_id": course_id})
-    await call.message.edit_text(ans.choose_request("days"))
+    await call.message.edit_text(ans.choose_request("day"))
     await call.message.edit_reply_markup(kb.get_days_keyboard(cb_days))
     await call.answer()
 

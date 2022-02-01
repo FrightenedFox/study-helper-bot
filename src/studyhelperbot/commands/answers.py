@@ -34,9 +34,13 @@ def unknown_command(lang="pl"):
         return "Nie znam takiego polecenia :o"
 
 
-def empty_query(lang="pl"):
+def empty_query(try_again=False, lang="pl"):
+    ans = "Nie udało się znaleźć zajęć w tym terminie :p"
+    if try_again:
+        ans += ("\nMożesz spróbować wpisać datę ponownie. Jeżeli nie chcesz"
+                "kontynuować możesz kliknąć \\cancel")
     if lang == "pl":
-        return "Brak wyników :p"
+        return ans
 
 
 def permission_conflict(lang="pl"):
@@ -95,15 +99,14 @@ def wait_for_link(url, lang="pl"):
                 f"\n\n{url}")
 
 
-def choose_commits(lang="pl"):
-    if lang == "pl":
-        return "Prosze wybrać akcję:"
-
-
 def choose_request(ending, lang="pl"):
     endings = {
-        "days": {"pl": "ilość dni"},
-        "courses": {"pl": "przedmiot"}
+        "day": {"pl": "ilość dni"},
+        "course": {"pl": "przedmiot"},
+        "action": {"pl": "akcję"},
+        "activity:hw_done_by_activity": {
+            "pl": "zajęcie, do którego trzeba oddać zadanie domowe"
+        }
     }
     if lang == "pl":
         return f"Proszę wybrać {endings[ending][lang]}:"
@@ -116,9 +119,37 @@ def choose_from_results(course, date, lang="pl"):
                 f"Znalezione zajęcia:")
 
 
-def enter_date(lang="pl"):
+def enter_request(ending, lang="pl"):
+    endings = {
+        "date": {"pl": "datę (używając formatu dd.mm.yyyy)"},
+        "time": {"pl": "czas (używając formatu hh:mm)"},
+        "activity:topics_discussed": {
+            "pl": "nazwy tematów, omówionych na zajęciu"
+        },
+        "activity:lecture_description": {
+            "pl": "dokładny opis zajęcia"
+        },
+        "activity:hw_short_description": {
+            "pl": "sktórcony opis zadania domowego"
+        },
+        "activity:hw_full_description": {
+            "pl": "dokładny opis zadania domowego"
+        },
+        "activity:hw_turn_in_method": {
+            "pl": "sposób oddania zadania domowego"
+        },
+        "activity:hw_due_date": {
+            "pl": "termin końcowy oddania zadania domowego"
+        },
+        "activity:attached_files": {
+            "pl": "załącznik"
+        },
+        "activity:other_details": {
+            "pl": "dodatkowe informacje"
+        },
+    }
     if lang == "pl":
-        return "Prosze podać datę zajęcia (używając formatu dd.mm.rrrr):"
+        return f"Prosze podać {endings[ending][lang]}:"
 
 
 # ------------- #
@@ -131,7 +162,7 @@ def storytellers_overview(activities: DataFrame, lang="pl"):
     #  consider rendering and showing an image
     result = ""
     if activities.shape[0] == 0:
-        result = empty_query(lang)
+        result = empty_query(lang=lang)
     elif activities.shape[0] <= 10:
         result += "```"
         last_date = None
