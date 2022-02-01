@@ -1,5 +1,11 @@
 from pandas import DataFrame
 
+
+# --------------------- #
+# Help and info answers #
+# --------------------- #
+
+
 def start(lang="pl"):
     # TODO: finish, correct and improve every answer
     if lang == "pl":
@@ -8,6 +14,64 @@ def start(lang="pl"):
                 "Żeby dowiedzieć się więcej o moich możliwościach, "
                 "wpisz (lub kliknij) /help.\n\n"
                 "Żeby zarejestrować się wpisz /register.")
+
+
+def successful_verification(lang="pl"):
+    # TODO: since we already know users' name, it would
+    #  be nice to use it as well
+    #  (e.g. Dear, Aurthur, verification passed successfully!)
+    if lang == "pl":
+        return "Udało się zalogować!"
+
+
+# --------------- #
+# Warning answers #
+# --------------- #
+
+
+def unknown_command(lang="pl"):
+    if lang == "pl":
+        return "Nie znam takiego polecenia :o"
+
+
+def empty_query(lang="pl"):
+    if lang == "pl":
+        return "Brak wyników :p"
+
+
+def permission_conflict(lang="pl"):
+    if lang == "pl":
+        return "Niestety, nie masz uprawnień do tego polecenia! :p"
+
+
+def you_are_already_registered(lang="pl"):
+    if lang == "pl":
+        return ("Już jesteś zarejstrowany, "
+                "niema potrzeby robić to ponownie.")
+
+
+# ------------- #
+# Error answers #
+# ------------- #
+
+
+def incorrect_date(lang="pl"):
+    if lang == "pl":
+        return ("Podana wartość nie odpowiada formatowi daty dd.mm.rrrr, "
+                "spróbuj ponownie wpisać datę. \n\n"
+                "Możesz również wyjść z aktualnej procedury "
+                "wpisując \\cancel")
+
+
+def incorrect_verification_code(lang="pl"):
+    if lang == "pl":
+        return ("Podany kod jest niepoprawny! \n"
+                "Żeby spróbować ponownie wpisz polecnie jeszcze raz.")
+
+
+# -------------- #
+# Prompt answers #
+# -------------- #
 
 
 def register(url, lang="pl"):
@@ -23,41 +87,12 @@ def register(url, lang="pl"):
                 f"\n\n{url}")
 
 
-def you_are_already_registered(lang="pl"):
-    if lang == "pl":
-        return ("Już jesteś zarejstrowany, "
-                "niema potrzeby robić to ponownie.")
-
-
 def wait_for_link(url, lang="pl"):
     if lang == "pl":
         return (f"Za chwilę wyślę do ciebie linka, za pomocą którego"
                 f" będziesz mógł (mogła) się zalogować, i podać mi "
                 f"6-znakowy kod weryfikacji."
                 f"\n\n{url}")
-
-
-def incorrect_verification_code(lang="pl"):
-    if lang == "pl":
-        return "Podany kod jest niepoprawny!"
-
-
-def successful_verification(lang="pl"):
-    # TODO: since we already know users' name, it would
-    #  be nice to use it as well
-    #  (e.g. Dear, Aurthur, verification passed successfully!)
-    if lang == "pl":
-        return "Udało się zalogować!"
-
-
-def unknown_command(lang="pl"):
-    if lang == "pl":
-        return "Sorki, ale nie wiem co ci odpisać :o"
-
-
-def permission_conflict(lang="pl"):
-    if lang == "pl":
-        return "Niestety, nie masz uprawnień do tego polecenia! :p"
 
 
 def choose_commits(lang="pl"):
@@ -81,12 +116,22 @@ def choose_from_results(course, date, lang="pl"):
                 f"Znalezione zajęcia:")
 
 
+def enter_date(lang="pl"):
+    if lang == "pl":
+        return "Prosze podać datę zajęcia (używając formatu dd.mm.rrrr):"
+
+
+# ------------- #
+# Print answers #
+# ------------- #
+
+
 def storytellers_overview(activities: DataFrame, lang="pl"):
     # TODO: add user preferences and modes
     #  consider rendering and showing an image
     result = ""
     if activities.shape[0] == 0:
-        result = "Brak wyników :p"
+        result = empty_query(lang)
     elif activities.shape[0] <= 10:
         result += "```"
         last_date = None
@@ -101,22 +146,8 @@ def storytellers_overview(activities: DataFrame, lang="pl"):
             result += f"{act.room:<25.15}\n"
         result += "```"
     else:
-        result = "Too many results (>10). Coming soon..."
+        result = "Too many results (>10). Not implemented yet, coming soon..."
     result = result.replace(".", "\\.").replace("=", "\\=").replace("-", "\\-")
     result = result.replace("(", "\\(").replace(")", "\\)").replace(">", "\\>")
     if lang == "pl":
         return result
-
-
-def enter_date(lang="pl"):
-    if lang == "pl":
-        return "Prosze podać datę zajęcia (używając formatu dd.mm.rrrr):"
-
-
-def incorrect_date(lang="pl"):
-    if lang == "pl":
-        return ("Podana wartość nie odpowiada formatowi daty dd.mm.rrrr, "
-                "spróbuj ponownie wpisać datę. \n\n"
-                "Możesz również wyjść z aktualnej procedury "
-                "wpisując \\cancel")
-
