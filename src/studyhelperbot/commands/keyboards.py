@@ -12,8 +12,6 @@ localizations = {
 
 
 def get_column_keyboard(values_dict, callback_name, callback_key, n_cols=1):
-    # TODO: if n_cols is still == 1 and it is the best option -> rewrite
-    #  this function, since it can be implemented much much easily
     keyboard = types.InlineKeyboardMarkup(row_width=n_cols)
 
     n_rows = ceil(len(values_dict) / n_cols)

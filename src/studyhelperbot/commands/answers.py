@@ -38,7 +38,7 @@ def empty_query(try_again=False, lang="pl"):
     ans = "Nie udało się znaleźć zajęć w tym terminie :p"
     if try_again:
         ans += ("\nMożesz spróbować wpisać datę ponownie. Jeżeli nie chcesz"
-                "kontynuować możesz kliknąć \\cancel")
+                "kontynuować możesz kliknąć /cancel..")
     if lang == "pl":
         return ans
 
@@ -64,13 +64,29 @@ def incorrect_date(lang="pl"):
         return ("Podana wartość nie odpowiada formatowi daty dd.mm.rrrr, "
                 "spróbuj ponownie wpisać datę. \n\n"
                 "Możesz również wyjść z aktualnej procedury "
-                "wpisując \\cancel")
+                "wpisując /cancel.")
+
+
+def incorrect_time(lang="pl"):
+    if lang == "pl":
+        return ("Podana wartość nie odpowiada formatowi czasu gg.mm,"
+                "spróbuj ponownie wpisać czas. \n\n"
+                "Możesz równierż wyjść z aktualnej procedury "
+                "wpisując /cancel.")
 
 
 def incorrect_verification_code(lang="pl"):
     if lang == "pl":
         return ("Podany kod jest niepoprawny! \n"
                 "Żeby spróbować ponownie wpisz polecnie jeszcze raz.")
+
+
+def obligatory_input(lang="pl"):
+    if lang == "pl":
+        return ("Nie można pominąć tej wartości! "
+                "Proszę wpisać podać poprawną wartość. \n\n"
+                "Możesz równierż wyjść z aktualnej procedury "
+                "wpisując /cancel.")
 
 
 # -------------- #
@@ -119,7 +135,7 @@ def choose_from_results(course, date, lang="pl"):
                 f"Znalezione zajęcia:")
 
 
-def enter_request(ending, lang="pl"):
+def enter_request(ending, skip=False, lang="pl"):
     endings = {
         "date": {"pl": "datę (używając formatu dd.mm.yyyy)"},
         "time": {"pl": "czas (używając formatu hh:mm)"},
@@ -148,8 +164,14 @@ def enter_request(ending, lang="pl"):
             "pl": "dodatkowe informacje"
         },
     }
+    if skip:
+        skip_text = {"pl": ".\n\nTen punkt nie jest obowiązkowym, "
+                           "żeby go pominąć proszę wpisać polecenie"
+                           " /skip"}[lang]
+    else:
+        skip_text = ":"
     if lang == "pl":
-        return f"Prosze podać {endings[ending][lang]}:"
+        return f"Prosze podać {endings[ending][lang]}{skip_text}"
 
 
 # ------------- #
