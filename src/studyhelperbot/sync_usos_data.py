@@ -37,6 +37,9 @@ def get_active_terms(groups_participant):
     for term in groups_participant["terms"]:
         if dt.date.today() < dt.date.fromisoformat(term["end_date"]):
             active_terms.append(term["id"])
+        # TODO: Remove when not necessary anymore
+        elif term["id"] == "2021/22-Z":
+            active_terms.append(term["id"])
     return active_terms
 
 
