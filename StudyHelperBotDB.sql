@@ -1,3 +1,5 @@
+create sequence log_homeworks_homework_id_seq1;
+
 create table permissions
 (
     permission_id          integer generated always as identity
@@ -238,37 +240,29 @@ create unique index activities_group_collision_uindex
 
 create table log_activities
 (
-    log_activity_id      integer generated always as identity
+    log_activity_id     integer generated always as identity
         constraint log_activities_pk
             primary key,
-    activity             integer                                not null
+    activity            integer                                not null
         constraint log_activities_activity_fk
             references activities
             on delete restrict,
-    topics_discussed     text                                   not null,
-    lecture_description  text,
-    hw_short_description text,
-    hw_full_description  text,
-    hw_turn_in_method    text,
-    hw_due_date          date,
-    message_url          text,
-    attached_files       text,
-    other_details        text,
-    accepted             boolean                  default false not null,
-    hw_done_by_activity  integer
-        constraint log_activities_hw_done_by_fk
-            references activities
-            on delete restrict,
-    added_by             integer
+    topics_discussed    text                                   not null,
+    lecture_description text,
+    message_url         text,
+    attached_files      text,
+    other_details       text,
+    accepted            boolean                  default false not null,
+    added_by            integer
         constraint log_activities_added_by_fk
             references users
             on delete restrict,
-    added_timestamp      timestamp with time zone default CURRENT_TIMESTAMP,
-    accepted_by          integer
+    added_timestamp     timestamp with time zone default CURRENT_TIMESTAMP,
+    accepted_by         integer
         constraint log_activities_accepted_by_fk
             references users
             on delete restrict,
-    accepted_timestamp   timestamp with time zone
+    accepted_timestamp  timestamp with time zone
 );
 
 create unique index log_activities_log_activity_id_uindex
@@ -352,5 +346,38 @@ create table activities_per_test
 
 create unique index activities_test_uindex
     on activities_per_test (test_id, activity_id);
+
+create table log_homeworks
+(
+    homework_id          integer generated always as identity
+        constraint log_homeworks_pk
+            primary key,
+    hw_short_description text                                               not null,
+    hw_full_description  text,
+    hw_turn_in_method    text,
+    hw_due_date          timestamp with time zone                           not null,
+    attached_files       text,
+    from_activity        integer
+        constraint log_homeworks_from_activity_fk
+            references activities
+            on delete set null,
+    added_timestamp      timestamp with time zone default CURRENT_TIMESTAMP not null,
+    accepted             boolean                  default false             not null,
+    accepted_by          integer
+        constraint log_homeworks_accepted_by_fk
+            references users
+            on delete set null,
+    accepted_timestamp   timestamp with time zone,
+    other_details        text,
+    added_by             integer                                            not null
+        constraint log_homeworks_added_by_fk
+            references users
+            on delete set null
+);
+
+alter sequence log_homeworks_homework_id_seq1 owned by log_homeworks.homework_id;
+
+create unique index log_homeworks_homework_id_uindex
+    on log_homeworks (homework_id);
 
 
