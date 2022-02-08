@@ -188,13 +188,13 @@ class StudyHelperBotDB:
 
     def get_user_activities_details(self, tg_user_id, start_date=None,
                                     end_date=None, course_id=None):
-        course_id_query, end_date_query = "", ""
+        course_id_query, end_date_query, start_date_query = "", "", ""
         query_dict = {"tg_user_id": tg_user_id}
         if start_date:
             start_date_query = " AND act.start_time >= %(start_date)s"
             query_dict["start_date"] = start_date
-        else:
-            start_date_query = " AND act.start_time >= current_timestamp"
+        # else:
+        #     start_date_query = " AND act.start_time >= current_timestamp"
         if end_date:
             end_date_query = "AND act.start_time <= %(end_date)s"
             query_dict["end_date"] = end_date
@@ -441,14 +441,15 @@ class StudyHelperBotDB:
 
     def insert_activity_log(self, user_answers: dict):
         """Insert an activity log."""
+        # TODO: separate activities and homeworks
         key_list = [
             "activity:lecture_description",
-            "activity:hw_turn_in_method",
-            "activity:hw_short_description",
-            "activity:hw_full_description",
-            "activity:hw_done_by_activity",
-            "activity:hw_due_date",
-            "activity:hw_turn_in_method",
+            # "activity:hw_turn_in_method",
+            # "activity:hw_short_description",
+            # "activity:hw_full_description",
+            # "activity:hw_done_by_activity",
+            # "activity:hw_due_date",
+            # "activity:hw_turn_in_method",
             "activity:attached_files",
             "activity:other_details",
         ]

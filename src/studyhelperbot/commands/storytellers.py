@@ -17,14 +17,20 @@ cb_courses = CallbackData("courses", "course_id")
 def answer_overview(tg_user_id, course_id,
                     n_days, db: StudyHelperBotDB):
     if n_days == "NULL":
+        start_date = None
         end_date = None
     else:
+        start_date = dt.date.today()
         end_date = dt.date.isoformat(
             dt.date.today() + dt.timedelta(days=int(n_days)))
     if course_id == "NULL":
         course_id = None
     activities_result = db.get_user_activities_details(
-        tg_user_id=tg_user_id, end_date=end_date, course_id=course_id)
+        tg_user_id=tg_user_id,
+        course_id=course_id,
+        start_date=start_date,
+        end_date=end_date,
+    )
     return ans.storytellers_overview(activities_result)
 
 

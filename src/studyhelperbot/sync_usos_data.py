@@ -129,7 +129,8 @@ async def sync_activities(
     for group in groups:
         d_group = dict(zip(["id", "usos_unit_id", "group_number"], group))
         term_end_date = db.get_unit_group_term_info(d_group["usos_unit_id"])
-        current_date = dt.date.today()
+        # current_date = dt.date.today()
+        current_date = dt.date.fromisoformat("2021-10-10")
         while current_date < term_end_date:
             timetable_group = usos_con.get(
                 service="services/tt/classgroup",
@@ -154,5 +155,5 @@ async def sync_activities(
                 )
             # Jump to the next week
             current_date += dt.timedelta(days=7)
-        # Artificially slow down requests, so that USOS doesn't get angry
-        await asyncio.sleep(3)
+            # Artificially slow down requests, so that USOS doesn't get angry
+            await asyncio.sleep(0.5)

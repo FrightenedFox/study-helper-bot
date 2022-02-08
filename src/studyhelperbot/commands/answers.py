@@ -185,10 +185,10 @@ def storytellers_overview(activities: DataFrame, lang="pl"):
     result = ""
     if activities.shape[0] == 0:
         result = empty_query(lang=lang)
-    elif activities.shape[0] <= 10:
+    else:
         result += "```"
         last_date = None
-        for ind, act in activities.iterrows():
+        for ind, act in activities[:10].iterrows():
             if last_date != act.start_time.date():
                 last_date = act.start_time.date()
                 result += f"\n{last_date.strftime(' %a %d %B %Y '):=^35}\n"
@@ -198,8 +198,9 @@ def storytellers_overview(activities: DataFrame, lang="pl"):
             result += f"{act.group_type:>7.3} {act.group_number:<3}"
             result += f"{act.room:<25.15}\n"
         result += "```"
-    else:
-        result = "Too many results (>10). Not implemented yet, coming soon..."
+        if activities.shape[0] > 10:
+            result += ("\n\n _\*wynik został obcięty "
+                       "po pierwszych 10 wierszach..._")
     result = result.replace(".", "\\.").replace("=", "\\=").replace("-", "\\-")
     result = result.replace("(", "\\(").replace(")", "\\)").replace(">", "\\>")
     if lang == "pl":
