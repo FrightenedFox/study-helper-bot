@@ -439,6 +439,40 @@ class StudyHelperBotDB:
         cur.close()
         logging.debug(f"{user_id=} {programme_id=}")
 
+    def insert_activity_log(self, user_answers: dict):
+        """Insert an activity log."""
+        key_list = [
+            "activity:lecture_description",
+            "activity:hw_turn_in_method",
+            "activity:hw_short_description",
+            "activity:hw_full_description",
+            "activity:hw_done_by_activity",
+            "activity:hw_due_date",
+            "activity:hw_turn_in_method",
+            "activity:attached_files",
+            "activity:other_details",
+        ]
+        cols = ""
+        values = ""
+        query_dict = {
+            "activity": user_answers["activity_id"],
+            "topics_discussed": user_answers["activity:topics_discussed"],
+        }
+        for key, val in user_answers.items():
+            if key in key_list and val:
+                proper_name = key.split(':')[1]
+                cols += f", {proper_name}"
+                values += f", %({proper_name})s"
+                query_dict.update({proper_name: val})
+        cur = self.conn.cursor()
+        query = (f"INSERT INTO public.log_activities "
+                 f"(activity, topics_discussed {cols}) "
+                 f"VALUES (%(activity)s, %(topics_discussed)s {values});")
+        cur.execute(query, query_dict)
+        self.conn.commit()
+        cur.close()
+        logging.debug(f"{query_dict}")
+
     def get_all_unit_groups(self):
         cur = self.conn.cursor()
         query = ("SELECT (unit_group_id, usos_unit_id, group_number) "

@@ -14,7 +14,7 @@ from studyhelperbot.db import StudyHelperBotDB
 cb_commits = CallbackData("commit", "action")
 cb_courses = CallbackData("course_to_commit", "course_id")
 cb_add_activity = CallbackData("add_activity", "activity_id")
-cb_done_by_activity = CallbackData("done_by_activity", "activity_id")
+cb_done_by_activity = CallbackData("done_by_activity", "done_by_activity_id")
 
 
 class CommitAddCommonStates(StatesGroup):
@@ -141,7 +141,7 @@ async def activity_hw_full_description(message: types.Message,
         answer,
         reply_markup=kb.get_column_keyboard(values_dict=options,
                                             callback_name=cb_done_by_activity,
-                                            callback_key="activity_id",
+                                            callback_key="done_by_activity_id",
                                             n_cols=2),
         parse_mode=types.ParseMode.MARKDOWN_V2
     )
@@ -158,6 +158,7 @@ async def activity_hw_due_date(message: types.Message,
             await state.update_data({"due_date": due_date.strftime("%Y-%m-%d")})
             await request_hw_turn_in_method(message)
     else:
+        await state.update_data({"due_date": ""})
         await request_hw_turn_in_method(message)
 
 
@@ -192,10 +193,12 @@ async def activity_attached_files(message: types.Message,
 
 
 async def finish_add_activity(message: types.Message,
-                              state: FSMContext):
+                              state: FSMContext,
+                              db: StudyHelperBotDB):
     await add_activity_states_handler(message, state,
                                       state_code="activity:other_details")
-    await message.answer(f"Operation successful!")
+    await message.answer(f"Operation successful! Trying to insert into DB...")
+    db.insert_activity_log(await state.get_data())
     await state.finish()
 
 
@@ -209,6 +212,7 @@ async def add_activity_states_handler(message: types.Message,
         await message.answer(ans.obligatory_input())
         return False
     else:
+        await state.update_data({state_code: ""})
         return True
 
 
@@ -231,13 +235,14 @@ async def activity_to_commit_callback(call: types.CallbackQuery,
 async def done_by_activity_callback(call: types.CallbackQuery,
                                     callback_data: dict,
                                     state: FSMContext):
-    activity_id = callback_data["activity_id"]
-    await state.update_data({"activity_id": activity_id})
+    activity_id = callback_data["done_by_activity_id"]
     if activity_id == "other":
+        await state.update_data({"done_by_activity_id": ""})
         await AddActivityLogStates.hw_due_date.set()
         await call.message.answer(
             ans.enter_request("activity:hw_due_date", skip=True))
     else:
+        await state.update_data({"done_by_activity_id": activity_id})
         await request_hw_turn_in_method(message=call.message)
     await call.message.delete()
     await call.answer()
