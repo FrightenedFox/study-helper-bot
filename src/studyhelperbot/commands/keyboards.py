@@ -6,7 +6,7 @@ n_days_values = [1, 2, 3, 7, 14, 30]
 localizations = {
     "all_courses": {"pl": "Wszystkie przedmioty",
                     "en": "All courses"},
-    "to_the_end": {"pl": "Do końca semestru",
+    "to_the_end": {"pl": "Cały semestr",
                    "en": "Until the end of the semester"}
 }
 

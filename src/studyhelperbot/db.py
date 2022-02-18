@@ -219,7 +219,7 @@ class StudyHelperBotDB:
                  f"  ung.unit_group_id = users_groups.group_id "
                  f"JOIN activities act ON "
                  f"  act.unit_group = ung.unit_group_id "
-                 f"WHERE users_groups.user_id = %(tg_user_id)s "
+                 f"WHERE users_groups.user_id = %(tg_user_id)s "    
                  f"  {end_date_query} {course_id_query} {start_date_query} "
                  f"ORDER BY act.start_time;")
         df = pd.read_sql(query, self.sqlalchemy_engine, params=query_dict,
