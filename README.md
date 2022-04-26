@@ -7,7 +7,7 @@ Telegram bot for student cooperation and communication. At least that was the or
 - inform the user of his schedule for the next few days
 - inform the user about the schedule for a specific subject
 
-This project is a part of the curriculum in *"Databases"* of the Rzeszow University of Technology, Poland. A detailed description of the project can be found in the `Documentation.pdf` file.
+This project is a part of the curriculum in *"Databases"* of the Rzeszow University of Technology, Poland. A detailed description of the project can be found in the [`DocumentationPL.pdf`](https://github.com/FrightenedFox/study-helper-bot/blob/main/DocumentationPL.pdf) file.
 
 
 ## Installation steps
