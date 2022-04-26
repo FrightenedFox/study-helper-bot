@@ -1,6 +1,14 @@
-# PRz Analiza Bot
+# PRz Data Analysis Bot
 
-Telegram bot for managing students' tasks
+Telegram bot for student cooperation and communication. At least that was the original idea, but due to the lack of time, the final version of the bot can only:
+
+- authenticate user with USOS API
+- download all information about user lectures to the local database
+- inform the user of his schedule for the next few days
+- inform the user about the schedule for a specific subject
+
+This project is a part of the curriculum in *"Databases"* of the Rzeszow University of Technology, Poland. A detailed description of the project can be found in the `Documentation.pdf` file.
+
 
 ## Installation steps
 
@@ -31,14 +39,11 @@ python3 -m pip install -r requirements_dev.txt
 
 ### Config
 
-Create a copy of the config example, which you can find at `src/studyhelperbot/config/config_example.ini`, and put it to
-the same folder. You may want to change the `logging` and `rethinkdb` sections or `admin_password` value in
-the `rethinkdb-setup` section. At this point don't touch other settings, we'll get back to them later.
+Create a copy of the config example, which you can find at `src/studyhelperbot/config/config_example.ini`, and put it to the same folder. You may want to change the `logging` and `rethinkdb` sections or `admin_password` value in the `rethinkdb-setup` section. At this point don't touch other settings, we'll get back to them later.
 
 ### PostgreSQL
 
-Configure the PostgreSQL server. You need to create a database and a dedicated user for the bot.
-This [guide from ArchWiki](https://wiki.archlinux.org/title/PostgreSQL#Installation) may be useful.
+Configure the PostgreSQL server. You need to create a database and a dedicated user for the bot. This [guide from ArchWiki](https://wiki.archlinux.org/title/PostgreSQL#Installation) may be useful.
 
 Now you need to fulfill the `postgresql` section in the config file and run `StudyHelperBotDB.sql` script.
 
@@ -46,8 +51,7 @@ Now you need to fulfill the `postgresql` section in the config file and run `Stu
 
 Install `rethinkdb` from the [official repositories](https://rethinkdb.com/docs/install/).
 
-Create and set user rights for RethinkDB folder (**warning:** examples are given for Arch based GNU/Linux systems, some
-commands may very for different distributions):
+Create and set user rights for RethinkDB folder (**warning:** examples are given for Arch based GNU/Linux systems, some commands may very for different distributions):
 
 ```shell
 rethinkdb create -d "/var/lib/rethinkdb/aiogramStorage/"
@@ -60,8 +64,7 @@ Start RethinkDB service:
 systemctl enable --now rethinkdb@aiogramStorage.service
 ```
 
-Run `src/studyhelperbot/rethinkdb_setup.py` script, which will set up a password for the administrator as well as create
-database, table and user using values from the config file.
+Run `src/studyhelperbot/rethinkdb_setup.py` script, which will set up a password for the administrator as well as create database, table and user using values from the config file.
 
 ```shell
 cd studyhelperbot/src/studyhelperbot
@@ -75,14 +78,11 @@ the `bot` section of the config file.
 
 ### USOS API
 
-Create your OAth `consumer_key` and `consumer_secret`
-using [USOS Apps developer center](https://usosapps.prz.edu.pl/developers/). Paste them to the `usosapi` section of the
-configuration file. 
+Create your OAth `consumer_key` and `consumer_secret` using [USOS Apps developer center](https://usosapps.prz.edu.pl/developers/). Paste them to the `usosapi` section of the configuration file. 
 
 ### Done
 
-Assuming you installed everything correctly and your current working directory is the source directory of the project
-(`study_helper_bot/src/studyhelperbot`), you can run `bot.py` module and everything should be set up!
+Assuming you installed everything correctly and your current working directory is the source directory of the project (`study_helper_bot/src/studyhelperbot`), you can run `bot.py` module and everything should be set up!
 
 ```shell
 python3 bot.py
